@@ -4,12 +4,13 @@ services:
   postgresql:
     image: postgres
     container_name: squadhelp
+    env_file: .env
     ports:
-      - "5435:5432"
+      - ${DB_PORT}:5432
     environment:
-      - POSTGRES_HOST=localhost
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=qwerty
-      - POSTGRES_DATABASE=squadhelp
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DATABASE=${DB_NAME}
     command: postgres
     restart: always
