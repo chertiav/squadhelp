@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  moderator
+  customer
+  creator
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  displayName String    @map("display_name")
+  password    String
+  email       String    @unique
+  avatar      String    @default("anon.png")
+  role        Role
+  balance     Decimal   @default(0)
+  rating      Float     @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  contests    Contest[]
+  offers      Offer[]
+  ratings     Rating[]
+
+  @@map("users")
+}
+
+model Bank {
+  cardNumber String   @id @map("card_number")
+  name       String
+  expiry     String
+  cvc        String
+  balance    Decimal  @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("banks")
+}
+
+model SelectBox {
+  type      String
+  describe  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([type, describe])
+  @@map("selects")
+}
+
+enum ContestType {
+  name
+  tagline
+  logo
+}
+
+enum ContestStatus {
+  pending
+  active
+  finished
+}
+
+model Contest {
+  id               Int           @id @default(autoincrement())
+  contestType      ContestType   @map("contest_type")
+  fileName         String?       @map("file_name")
+  originalFileName String?       @map("original_file_name")
+  title            String?
+  typeOfName       String?       @map("type_of_name")
+  industry         String?
+  focusOfWork      String?       @map("focus_of_work")
+  targetCustomer   String?       @map("target_customer")
+  styleName        String?       @map("style_name")
+  nameVenture      String?       @map("name_venture")
+  typeOfTagline    String?       @map("type_of_tagline")
+  status           ContestStatus @default(pending)
+  brandStyle       String?       @map("brand_style")
+  price            Decimal
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  priority         Int
+  orderId          String        @map("order_id")
+  user             User          @relation(fields: [userId], references: [id])
+  userId           Int           @map("user_id")
+  offers           Offer[]
+
+  @@map("contests")
+}
+
+enum OfferStatus {
+  pending
+  active
+  rejected
+  won
+}
+
+model Offer {
+  id               Int         @id @default(autoincrement())
+  text             String?
+  fileName         String?     @map("file_name")
+  originalFileName String?     @map("original_file_name")
+  status           OfferStatus @default(pending)
+  user             User        @relation(fields: [userId], references: [id])
+  userId           Int         @map("user_id")
+  contest          Contest     @relation(fields: [contestId], references: [id])
+  contestId        Int         @map("contest_id")
+  createdAt        DateTime    @default(now()) @map("created_at")
+  updatedAt        DateTime    @updatedAt @map("updated_at")
+  ratings          Rating[]
+
+  @@map("offers")
+}
+
+model Rating {
+  offer   Offer @relation(fields: [offerId], references: [id])
+  offerId Int   @map("offer_id")
+  user    User  @relation(fields: [userId], references: [id])
+  userId  Int   @map("user_id")
+  mark    Float @default(0)
+
+  @@id([offerId, userId])
+  @@map("ratings")
+}
