@@ -6,8 +6,8 @@ import { seedSelectData, seedBankData, seedUserData } from './data';
 const prisma = new PrismaClient();
 
 async function main() {
-	const salt = Math.floor(Math.random() * 10) + 1;
-	const hashPassword = await bcrypt.hash(seedUserData.password, salt);
+	const salt: number | string = await bcrypt.genSalt();
+	const hashPassword: string = await bcrypt.hash(seedUserData.password, salt);
 
 	await prisma.user.create({
 		data: {
