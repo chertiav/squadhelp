@@ -1,4 +1,4 @@
-import { Injectable, Next, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { User } from '@prisma/client';
@@ -10,7 +10,6 @@ import {
 	PublicUserDto,
 } from '../../common/dto/user';
 import { AppErrors } from '../../common/errors';
-import { NextFunction } from 'express';
 
 @Injectable()
 export class AuthService {
