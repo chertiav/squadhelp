@@ -26,7 +26,7 @@ export class UserService {
 
 	public async createUser(dto: CreateUserDto): Promise<User> {
 		try {
-			return this.prisma.$transaction(async (prisma) => {
+			return this.prisma.$transaction(async () => {
 				const existsUser: User | null = await this.findOne({
 					where: { email: dto.email },
 				});
