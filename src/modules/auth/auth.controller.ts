@@ -22,8 +22,8 @@ import { ILocalGuardRequest } from '../../common/interfaces/auth/i-local-guard-r
 export class AuthController {
 	constructor(private readonly authService: AuthService) {}
 
-	@Post('register')
 	@HttpCode(HttpStatus.CREATED)
+	@Post('register')
 	async register(
 		@Res({ passthrough: true }) res: Response,
 		@Body() dto: CreateUserDto,
@@ -33,9 +33,9 @@ export class AuthController {
 		return { user, message: AppMessages.MSG_REGISTER };
 	}
 
-	@Post('login')
 	@UseGuards(LocalAuthGuard)
 	@HttpCode(HttpStatus.OK)
+	@Post('login')
 	async login(
 		@Res({ passthrough: true }) res: Response,
 		@Req() req: ILocalGuardRequest,
@@ -45,15 +45,14 @@ export class AuthController {
 		return { user, message: AppMessages.MSG_LOGGED_IN };
 	}
 
-	@Get('/login-check')
 	@UseGuards(JWTAuthGuard)
+	@Get('/login-check')
 	loginCheck(@Req() request) {
 		return request.user;
 	}
-
-	@Get('logout')
 	@UseGuards(JWTAuthGuard)
 	@HttpCode(HttpStatus.OK)
+	@Get('logout')
 	async logout(
 		@Res({ passthrough: true }) res: Response,
 	): Promise<{ message: string }> {
