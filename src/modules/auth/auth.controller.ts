@@ -4,7 +4,6 @@ import {
 	Get,
 	HttpCode,
 	HttpStatus,
-	Next,
 	Post,
 	Req,
 	Res,
@@ -44,6 +43,12 @@ export class AuthController {
 		const { user, token } = await this.authService.login(req.user);
 		res.cookie('token', token, { ...AUTH_COOKIES_OPTIONS });
 		return { user, message: AppMessages.MSG_LOGGED_IN };
+	}
+
+	@Get('/login-check')
+	@UseGuards(JWTAuthGuard)
+	loginCheck(@Req() request) {
+		return request.user;
 	}
 
 	@Get('logout')

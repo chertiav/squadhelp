@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { User } from '@prisma/client';
@@ -13,35 +17,55 @@ export class UserService {
 	public async findOne(filter: {
 		where: { id?: number; email?: string };
 	}): Promise<User | null> {
-		return this.prisma.user.findUnique({ ...filter });
+		try {
+			return this.prisma.user.findUnique({ ...filter });
+		} catch (e) {
+			throw new InternalServerErrorException((e as Error).message);
+		}
 	}
 
 	public async createUser(dto: CreateUserDto): Promise<User> {
-		const existsUser: User | null = await this.findOne({
-			where: { email: dto.email },
-		});
-		if (existsUser) throw new BadRequestException(AppErrors.USER_EXISTS);
-		const hashPassword: string = await this.getHashPassword(dto.password);
-		return this.prisma.user.create({
-			data: {
-				...dto,
-				password: hashPassword,
-			},
-		});
+		try {
+			return this.prisma.$transaction(async (prisma) => {
+				const existsUser: User | null = await this.findOne({
+					where: { email: dto.email },
+				});
+				if (existsUser) throw new BadRequestException(AppErrors.USER_EXISTS);
+				const hashPassword: string = await this.getHashPassword(dto.password);
+				return this.prisma.user.create({
+					data: {
+						...dto,
+						password: hashPassword,
+					},
+				});
+			});
+		} catch (e) {
+			throw new InternalServerErrorException((e as Error).message);
+		}
 	}
 
 	public async getPublicUser(email: string): Promise<PublicUserDto> {
-		const user: User = await this.findOne({
-			where: { email },
-		});
-		return new PublicUserDto(user);
+		try {
+			const user: User = await this.findOne({
+				where: { email },
+			});
+			return new PublicUserDto(user);
+		} catch (e) {
+			throw new InternalServerErrorException((e as Error).message);
+		}
 	}
 
 	private async getHashPassword(
 		password: string,
 		salt?: string | number,
 	): Promise<string> {
-		const saltOrRounds: string | number = salt ? salt : await bcrypt.genSalt();
-		return bcrypt.hash(password, saltOrRounds);
+		try {
+			const saltOrRounds: string | number = salt
+				? salt
+				: await bcrypt.genSalt();
+			return bcrypt.hash(password, saltOrRounds);
+		} catch (e) {
+			throw new InternalServerErrorException(AppErrors.ISSUE_IN_THE_HASH);
+		}
 	}
 }
