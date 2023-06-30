@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { User } from '@prisma/client';
@@ -21,14 +21,14 @@ export class AuthService {
 	public async validateUser(email: string, password: string): Promise<User> {
 		const user: User = await this.userService.findOne({ where: { email } });
 		if (!user) {
-			throw new UnauthorizedException(AppErrors.USER_WRONG_LOGIN_OR_PASSWORD);
+			throw new ForbiddenException(AppErrors.USER_WRONG_LOGIN_OR_PASSWORD);
 		}
 		const passwordValid: boolean = await bcrypt.compare(
 			password,
 			user.password,
 		);
 		if (!passwordValid) {
-			throw new UnauthorizedException(AppErrors.USER_WRONG_LOGIN_OR_PASSWORD);
+			throw new ForbiddenException(AppErrors.USER_WRONG_LOGIN_OR_PASSWORD);
 		}
 		return user;
 	}
