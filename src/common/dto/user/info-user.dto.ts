@@ -1,7 +1,8 @@
-import { PublicUserDto } from './public-user.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, Length } from 'class-validator';
+import { IsNotEmpty } from 'class-validator';
+
 import { User } from '@prisma/client';
+import { PublicUserDto } from './public-user.dto';
 
 export class InfoUserDto extends PublicUserDto {
 	@ApiProperty({
@@ -18,17 +19,9 @@ export class InfoUserDto extends PublicUserDto {
 	@IsNotEmpty()
 	lastName: string;
 
-	@ApiProperty({
-		description: 'Avatar filename',
-		example: 'anon.png',
-	})
-	@IsNotEmpty()
-	avatar: string;
-
 	constructor(model: User) {
 		super(model);
 		this.firstName = model.firstName;
 		this.lastName = model.lastName;
-		this.avatar = model.avatar;
 	}
 }

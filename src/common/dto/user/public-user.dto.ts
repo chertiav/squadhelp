@@ -1,6 +1,8 @@
-import { User } from '@prisma/client';
 import { ApiProperty } from '@nestjs/swagger';
+
+import { User } from '@prisma/client';
 import { UserRolesEnum } from '../../enum/user';
+import { IsNotEmpty } from 'class-validator';
 
 export class PublicUserDto {
 	@ApiProperty({
@@ -23,9 +25,17 @@ export class PublicUserDto {
 	})
 	role: string;
 
+	@ApiProperty({
+		description: 'Avatar filename',
+		example: 'anon.png',
+	})
+	@IsNotEmpty()
+	avatar: string;
+
 	constructor(model: User) {
 		this.id = model.id;
 		this.displayName = model.displayName;
 		this.role = model.role;
+		this.avatar = model.avatar;
 	}
 }
