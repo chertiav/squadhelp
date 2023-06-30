@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import configuration from '../../configuration';
+import configuration from '../../configuration/app';
 import { TokenModule } from '../token/token.module';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
