@@ -7,8 +7,14 @@ import * as bcrypt from 'bcrypt';
 
 import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto, PublicUserDto } from '../../common/dto/user';
+import {
+	CreateUserDto,
+	InfoUserDto,
+	PublicUserDto,
+	UpdateUserDto,
+} from '../../common/dto/user';
 import { AppErrors } from '../../common/errors';
+import { SELECT_USER_FIELDS } from '../../common/constants';
 
 @Injectable()
 export class UserService {
@@ -20,7 +26,12 @@ export class UserService {
 		try {
 			return this.prisma.user.findUnique({ ...filter });
 		} catch (e) {
-			throw new InternalServerErrorException((e as Error).message);
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
 		}
 	}
 
@@ -40,7 +51,12 @@ export class UserService {
 				});
 			});
 		} catch (e) {
-			throw new InternalServerErrorException((e as Error).message);
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
 		}
 	}
 
@@ -51,7 +67,53 @@ export class UserService {
 			});
 			return new PublicUserDto(user);
 		} catch (e) {
-			throw new InternalServerErrorException((e as Error).message);
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async getInfoUser(id: number): Promise<InfoUserDto> {
+		try {
+			const user: User = await this.findOne({
+				where: { id },
+			});
+			return new InfoUserDto(user);
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async updateUser(
+		dto: UpdateUserDto,
+		id: number,
+	): Promise<InfoUserDto> {
+		try {
+			const updateUser: InfoUserDto = await this.prisma.$transaction(
+				async (prisma) => {
+					return prisma.user.update({
+						where: { id },
+						data: { ...dto },
+						select: { ...SELECT_USER_FIELDS },
+					});
+				},
+			);
+			if (updateUser) return updateUser;
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
 		}
 	}
 

@@ -14,6 +14,7 @@ import {
 	ApiBody,
 	ApiCookieAuth,
 	ApiCreatedResponse,
+	ApiForbiddenResponse,
 	ApiOkResponse,
 	ApiOperation,
 	ApiTags,
@@ -38,6 +39,7 @@ import {
 } from '../../common/types/response/auth';
 import {
 	BadRequestExceptionRes,
+	ForbiddenExceptionRes,
 	UnauthorizedExceptionRes,
 } from '../../common/types/response/exception';
 
@@ -76,9 +78,9 @@ export class AuthController {
 		description: 'User data for login in',
 		type: LoginUserDto,
 	})
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+	@ApiForbiddenResponse({
+		description: 'Forbidden exception message',
+		type: ForbiddenExceptionRes,
 	})
 	@ApiOkResponse({
 		description: 'Successfully login in user data and information message',

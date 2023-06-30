@@ -1,19 +1,19 @@
 import { ApiProperty } from '@nestjs/swagger';
-
-export class UnauthorizedExceptionRes {
+import { AppErrors } from '../../../errors';
+export class ForbiddenExceptionRes {
 	@ApiProperty({
-		description: 'Status code unauthorized error',
-		example: 401,
+		description: 'Status code error exception',
+		example: 403,
 	})
 	status: number;
 	@ApiProperty({
 		description: 'Name group error exception',
-		example: 'UnauthorizedException',
+		example: 'ForbiddenException',
 	})
 	name: string;
 	@ApiProperty({
 		description: 'Error description',
-		example: 'Unauthorized',
+		example: AppErrors.USER_WRONG_LOGIN_OR_PASSWORD,
 	})
 	message: string;
 }

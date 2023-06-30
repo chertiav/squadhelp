@@ -4,9 +4,6 @@ export const AppErrors = {
 	USER_WRONG_LOGIN_OR_PASSWORD: 'Wrong login or password',
 	UNINTENDED_INTERNAL_SERVER_ERROR: 'Unintended internal server error ',
 	ISSUE_IN_THE_HASH: 'There are some issue in the hash',
-	// LOGIN_ERROR: 'Login error',
-	// YOU_DO_NOT_HAVE_ACCESS: 'You do not have access',
-	// REFRESH_TOKEN_MALFORMED: 'Refresh token malformed',
-	// DATA_UPDATE_ERROR: 'data update error',
-	// WRONG_DATA: 'Wrong data',
+	INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER:
+		'Internal server error try again later',
 };
