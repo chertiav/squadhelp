@@ -5,7 +5,7 @@ import { AppMessages } from '../../../messages';
 export class UpdateUserRes {
 	@ApiProperty()
 	user: InfoUserDto;
-	@ApiProperty()
+
 	@ApiProperty({
 		description: 'Success message',
 		example: AppMessages.MSG_USER_INFORMATION_UPDATED,

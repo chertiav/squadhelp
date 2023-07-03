@@ -34,6 +34,7 @@ describe('Auth Controller', () => {
 
 	afterAll(async (): Promise<void> => {
 		await prisma.$disconnect();
+		await app.close();
 	});
 
 	it('should create user', async (): Promise<void> => {

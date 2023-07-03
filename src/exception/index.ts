@@ -9,6 +9,7 @@ import { HttpAdapterHost } from '@nestjs/core';
 
 import { AppErrors } from '../common/errors';
 import { IErrorBody, ILoggerBody } from '../common/interfaces/exception';
+import { loggingError } from '../utils';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -58,6 +59,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 			message: httpMessage(),
 		};
 
+		loggingError(responseLoggedBody);
 		httpAdapter.reply(ctx.getResponse(), responseBody, httpStatus);
 	}
 }

@@ -11,6 +11,7 @@ import { userMockData } from '../mockData';
 import { CreateUserDto, PublicUserDto } from '../../src/common/dto/user';
 import { JwtService } from '@nestjs/jwt';
 import { IJwtPayload } from '../../src/common/interfaces/auth';
+import { DEFAULT_AVATAR_NAME } from '../../src/common/constants';
 
 describe('Auth Service', () => {
 	let app: INestApplication;
@@ -43,6 +44,7 @@ describe('Auth Service', () => {
 
 	afterAll(async (): Promise<void> => {
 		await prisma.$disconnect();
+		await app.close();
 	});
 
 	it('should validate user', async (): Promise<void> => {
@@ -61,7 +63,7 @@ describe('Auth Service', () => {
 		expect(user.lastName).toBe(userMockData.lastName);
 		expect(user.displayName).toBe(userMockData.displayName);
 		expect(passwordValid).toBe(true);
-		expect(user.avatar).toBe('anon.png');
+		expect(user.avatar).toBe(DEFAULT_AVATAR_NAME);
 		expect(user.role).toBe(userMockData.role);
 		expect(+user.balance).toBe(0);
 		expect(+user.rating).toBe(0);

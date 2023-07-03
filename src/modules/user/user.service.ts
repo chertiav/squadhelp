@@ -14,11 +14,16 @@ import {
 	UpdateUserDto,
 } from '../../common/dto/user';
 import { AppErrors } from '../../common/errors';
+import { IUserUpdate } from '../../common/interfaces/user';
 import { SELECT_USER_FIELDS } from '../../common/constants';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class UserService {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(
+		private readonly prisma: PrismaService,
+		private readonly fileService: FileService,
+	) {}
 
 	public async findOne(filter: {
 		where: { id?: number; email?: string };
@@ -97,11 +102,18 @@ export class UserService {
 		id: number,
 	): Promise<InfoUserDto> {
 		try {
+			dto.deleteAvatar && this.fileService.removeFile(dto.deleteAvatar);
+			const userUpdateData: IUserUpdate = {
+				firstName: dto.firstName,
+				lastName: dto.lastName,
+				displayName: dto.displayName,
+				avatar: dto.avatar,
+			};
 			const updateUser: InfoUserDto = await this.prisma.$transaction(
 				async (prisma) => {
 					return prisma.user.update({
 						where: { id },
-						data: { ...dto },
+						data: { ...userUpdateData },
 						select: { ...SELECT_USER_FIELDS },
 					});
 				},
