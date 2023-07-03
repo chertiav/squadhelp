@@ -5,10 +5,13 @@ import {
 	HttpCode,
 	HttpStatus,
 	Patch,
+	UploadedFile,
 	UseGuards,
+	UseInterceptors,
 } from '@nestjs/common';
 import {
 	ApiBody,
+	ApiConsumes,
 	ApiCookieAuth,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
@@ -16,23 +19,28 @@ import {
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-import { UserService } from './user.service';
-import { UpdateUserDto } from '../../common/dto/user';
 import { InfoUserRes, UpdateUserRes } from '../../common/types/response/user';
+import { AppMessages } from '../../common/messages';
+import { imageStorage } from '../file/file.storage';
+import { UserId } from '../../decorators';
 import {
 	InternalServerErrorExceptionRes,
 	UnauthorizedExceptionRes,
 } from '../../common/types/response/exception';
 import { JWTAuthGuard } from '../../guards';
-import { AppMessages } from '../../common/messages';
-import { UserId } from '../../decorators';
+import { UserService } from './user.service';
+import { UserUpdateFileInterceptor } from '../../intercptors';
+import { InfoUserDto, UpdateUserDto } from '../../common/dto/user';
 
 @ApiTags('user')
 @Controller('user')
 export class UserController {
 	constructor(private readonly userService: UserService) {}
+
 	@ApiOperation({ description: 'User updating' })
+	@ApiConsumes('multipart/form-data')
 	@ApiBody({
 		description: 'User data for update',
 		type: UpdateUserDto,
@@ -52,12 +60,19 @@ export class UserController {
 	@ApiCookieAuth()
 	@UseGuards(JWTAuthGuard)
 	@HttpCode(HttpStatus.OK)
+	@UseInterceptors(
+		FileInterceptor('file', {
+			...imageStorage,
+		}),
+		UserUpdateFileInterceptor,
+	)
 	@Patch('update')
 	async update(
 		@UserId() id: number,
+		@UploadedFile() file: Express.Multer.File,
 		@Body() dto: UpdateUserDto,
 	): Promise<UpdateUserRes> {
-		const user: any = await this.userService.updateUser(dto, id);
+		const user: InfoUserDto = await this.userService.updateUser(dto, id);
 		return { user, message: AppMessages.MSG_USER_INFORMATION_UPDATED };
 	}
 

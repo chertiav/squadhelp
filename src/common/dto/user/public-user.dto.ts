@@ -1,8 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsNotEmpty } from 'class-validator';
 
 import { User } from '@prisma/client';
 import { UserRolesEnum } from '../../enum/user';
-import { IsNotEmpty } from 'class-validator';
+import { DEFAULT_AVATAR_NAME } from '../../constants';
 
 export class PublicUserDto {
 	@ApiProperty({
@@ -27,9 +28,8 @@ export class PublicUserDto {
 
 	@ApiProperty({
 		description: 'Avatar filename',
-		example: 'anon.png',
+		example: DEFAULT_AVATAR_NAME,
 	})
-	@IsNotEmpty()
 	avatar: string;
 
 	constructor(model: User) {

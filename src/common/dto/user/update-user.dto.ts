@@ -1,5 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, Length } from 'class-validator';
+import { ApiFile } from '../../../decorators';
+
+import { DEFAULT_AVATAR_NAME } from '../../constants';
 
 export class UpdateUserDto {
 	@ApiProperty({
@@ -26,8 +29,17 @@ export class UpdateUserDto {
 
 	@ApiProperty({
 		description: 'Avatar filename',
-		example: 'anon.png',
+		example: DEFAULT_AVATAR_NAME,
 	})
 	@IsNotEmpty()
 	avatar: string;
+
+	@ApiProperty({
+		description: 'The name of the file to be deleted',
+		example: 'bd4c130d-84c6-43e9-a618-027940613ebb.jpg',
+	})
+	deleteAvatar?: string;
+
+	@ApiFile()
+	file?: Express.Multer.File;
 }

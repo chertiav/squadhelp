@@ -34,6 +34,7 @@ describe('Token Service', () => {
 
 	afterAll(async (): Promise<void> => {
 		await prisma.$disconnect();
+		await app.close();
 	});
 
 	it('should generate JwtToken', async (): Promise<void> => {
@@ -46,6 +47,7 @@ describe('Token Service', () => {
 			id: user.id,
 			role: user.role,
 			displayName: user.displayName,
+			avatar: user.avatar,
 		});
 
 		const checkToken: IJwtPayload = jwtService.verify(token);
@@ -53,6 +55,7 @@ describe('Token Service', () => {
 		expect(checkToken.user.id).toBe(user.id);
 		expect(checkToken.user.displayName).toBe(user.displayName);
 		expect(checkToken.user.role).toBe(user.role);
+		expect(checkToken.user.avatar).toBe(user.avatar);
 		expect(isNumber(checkToken.iat)).toBe(true);
 		expect(isNumber(checkToken.exp)).toBe(true);
 	});
