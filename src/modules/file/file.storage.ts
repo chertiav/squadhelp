@@ -11,7 +11,6 @@ const filePath: string = join(config.default().staticPath, 'files');
 
 try {
 	if (!fs.existsSync(filePath)) {
-		console.log(fs.existsSync(filePath));
 		fs.mkdirSync(filePath, { recursive: true });
 	}
 } catch (e) {

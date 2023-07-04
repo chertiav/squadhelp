@@ -10,7 +10,7 @@ import { LOG_FILE } from '../../common/constants';
 export class TasksService {
 	private readonly logger: Logger = new Logger(TasksService.name);
 
-	@Cron(CronExpression.EVERY_DAY_AT_NOON, {
+	@Cron(CronExpression.EVERY_DAY_AT_8PM, {
 		name: 'loggingErrorToFile',
 		timeZone: 'Europe/Kyiv',
 	})
@@ -36,7 +36,7 @@ export class TasksService {
 					this.logger.error(err.message);
 					return;
 				}
-				const date: number = new Date().getTime();
+				const date: string = new Date().toISOString().replace(/:/g, '_');
 				const file: string = join(logFilePathCurrentDay, `${date}.log`);
 				const buffer: string = data.toString('utf-8');
 				const arrayData: string[] = buffer.split('\n');
@@ -56,7 +56,6 @@ export class TasksService {
 							},
 						);
 					});
-				console.log(logFileNamePath);
 				fs.truncate(
 					logFileNamePath,
 					(err: NodeJS.ErrnoException | null): void => {
