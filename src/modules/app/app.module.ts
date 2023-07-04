@@ -8,6 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
 import { FileModule } from '../file/file.module';
 import { TasksModule } from '../tasks/tasks.module';
+import { ContestModule } from '../contest/contest.module';
 
 @Module({
 	imports: [
@@ -21,6 +22,7 @@ import { TasksModule } from '../tasks/tasks.module';
 		TokenModule,
 		AuthModule,
 		UserModule,
+		ContestModule,
 	],
 })
 export class AppModule {}
