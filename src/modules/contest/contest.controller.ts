@@ -15,9 +15,12 @@ import {
 	UnauthorizedExceptionRes,
 } from '../../common/types/response/exception';
 import {
+	CustomerContestResDto,
 	DataForContestDto,
 	DataForContestResDto,
+	QueryCustomerContestsDto,
 } from '../../common/dto/contest';
+import { UserId } from '../../decorators';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -44,5 +47,28 @@ export class ContestController {
 		@Query() query: DataForContestDto,
 	): Promise<DataForContestResDto> {
 		return this.contestService.getDataForContest(query);
+	}
+
+	@ApiOperation({ description: 'Get customer contest' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionRes,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionRes,
+	})
+	@ApiOkResponse({
+		description: 'Customer contests data',
+		type: CustomerContestResDto,
+	})
+	@ApiCookieAuth()
+	@UseGuards(JWTAuthGuard)
+	@Get('customer-contests')
+	async customerContests(
+		@UserId() id: number,
+		@Query() query: QueryCustomerContestsDto,
+	): Promise<CustomerContestResDto> {
+		return this.contestService.getCustomerContests(id, query);
 	}
 }

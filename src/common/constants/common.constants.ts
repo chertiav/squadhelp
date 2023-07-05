@@ -1,22 +1,10 @@
-export const AUTH_COOKIES_OPTIONS: {
-	httpOnly: boolean;
-	secure: boolean;
-	maxAge: number;
-} = {
+export const AUTH_COOKIES_OPTIONS = {
 	httpOnly: true,
 	secure: false,
 	maxAge: 24 * 60 * 60 * 1000,
 };
 
-export const SELECT_USER_FIELDS: {
-	id: boolean;
-	firstName: boolean;
-	lastName: boolean;
-	displayName: boolean;
-	email: boolean;
-	role: boolean;
-	avatar: boolean;
-} = {
+export const SELECT_USER_FIELDS = {
 	id: true,
 	firstName: true,
 	lastName: true,
@@ -26,11 +14,7 @@ export const SELECT_USER_FIELDS: {
 	avatar: true,
 };
 
-export const LOG_FILE: {
-	logFileName: string;
-	logFilePath: string;
-	logFilePathCurrentDay: string;
-} = {
+export const LOG_FILE = {
 	logFilePath: 'logs',
 	logFileName: 'errors.log',
 	logFilePathCurrentDay: 'logs-current-day',

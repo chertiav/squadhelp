@@ -1,9 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { OfferStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import {
+	CustomerContestResDto,
 	DataForContestDto,
 	DataForContestResDto,
+	QueryCustomerContestsDto,
 } from '../../common/dto/contest';
 import { ICharacterisricForDataContest } from '../../common/interfaces/contest';
 import { AppErrors } from '../../common/errors';
@@ -52,7 +55,60 @@ export class ContestService {
 			return response as DataForContestResDto;
 		} catch (e) {
 			throw new InternalServerErrorException(
-				AppErrors.CANNOT_GET_CONTEST_PREFERENCES,
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async getCustomerContests(
+		id: number,
+		query: QueryCustomerContestsDto,
+	): Promise<CustomerContestResDto> {
+		try {
+			const { status, limit, offset }: QueryCustomerContestsDto = query;
+			const queryContest: Prisma.ContestFindManyArgs = {
+				where: { userId: id, status },
+				orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+				select: {
+					id: true,
+					title: true,
+					contestType: true,
+					typeOfName: true,
+					brandStyle: true,
+					typeOfTagline: true,
+					createdAt: true,
+					price: true,
+					_count: {
+						select: {
+							offers: {
+								where: {
+									status: OfferStatus.active,
+								},
+							},
+						},
+					},
+				},
+			};
+			const [contests, totalCount]: [contests: any, totalCount: number] =
+				await this.prisma.$transaction([
+					this.prisma.contest.findMany({
+						...queryContest,
+						take: +limit,
+						skip: +offset,
+					}),
+					this.prisma.contest.count({ where: queryContest.where }),
+				]);
+
+			return {
+				contests,
+				totalCount,
+			};
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
 				{
 					cause: e,
 				},
