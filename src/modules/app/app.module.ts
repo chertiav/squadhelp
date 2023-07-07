@@ -1,8 +1,10 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import configuration from '../../configuration/app';
+import { paginateMwConfig } from '../../configuration/middleware';
+import { PaginationMiddleware } from '../../middleware';
 import { TokenModule } from '../token/token.module';
 import { AuthModule } from '../auth/auth.module';
 import { UserModule } from '../user/user.module';
@@ -25,4 +27,8 @@ import { ContestModule } from '../contest/contest.module';
 		ContestModule,
 	],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+	configure(consumer: MiddlewareConsumer): void {
+		consumer.apply(PaginationMiddleware).forRoutes(...paginateMwConfig);
+	}
+}

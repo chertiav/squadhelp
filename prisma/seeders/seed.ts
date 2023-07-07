@@ -10,6 +10,7 @@ import {
 	seedUserDataCustomer,
 	seedOffersData,
 	seedUserDataCustomer_2,
+	seedUserDataCreator_2,
 } from './data';
 
 const prisma = new PrismaClient();
@@ -44,6 +45,13 @@ async function main() {
 		data: {
 			...seedUserDataCustomer_2,
 			password: await hashPassword(seedUserDataCustomer_2.password),
+		},
+	});
+
+	await prisma.user.create({
+		data: {
+			...seedUserDataCreator_2,
+			password: await hashPassword(seedUserDataCreator_2.password),
 		},
 	});
 

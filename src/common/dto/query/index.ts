@@ -1,17 +1,8 @@
-import { IsNotEmpty, IsNumber, IsString, Max, Min } from 'class-validator';
-import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
-import { ContestStatus } from '@prisma/client';
+import { Transform } from 'class-transformer';
+import { IsNumber, Max, Min } from 'class-validator';
 
-export class QueryCustomerContestsDto {
-	@ApiProperty({
-		description: 'Contest status',
-		example: 'active',
-	})
-	@IsString()
-	@IsNotEmpty()
-	status: ContestStatus;
-
+export class QueryPagination {
 	@ApiProperty({
 		description: 'Limit on the number of contests per request',
 		example: 8,

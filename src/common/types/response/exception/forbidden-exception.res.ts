@@ -13,7 +13,7 @@ export class ForbiddenExceptionRes {
 	name: string;
 	@ApiProperty({
 		description: 'Error description',
-		example: AppErrors.USER_WRONG_LOGIN_OR_PASSWORD,
+		example: 'Forbidden resource or message with exception description',
 	})
 	message: string;
 }

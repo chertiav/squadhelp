@@ -45,3 +45,25 @@ export const OPTIONS_FOR_API_PROPERTY = {
 		],
 	},
 };
+
+export const CONTEST_TYPE: string[] = [
+	'',
+	'name,tagline,logo',
+	'name',
+	'tagline',
+	'logo',
+	'name,tagline',
+	'logo,tagline',
+	'name,logo',
+];
+
+export const OPTIONS_GET_ALL_CONTESTS = {
+	id: true,
+	title: true,
+	contestType: true,
+	typeOfName: true,
+	brandStyle: true,
+	typeOfTagline: true,
+	createdAt: true,
+	price: true,
+};

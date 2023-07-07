@@ -1,9 +1,11 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import {
 	ApiCookieAuth,
+	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
+	ApiQuery,
 	ApiTags,
 	ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
@@ -11,16 +13,21 @@ import {
 import { ContestService } from './contest.service';
 import { JWTAuthGuard } from '../../guards';
 import {
+	ForbiddenExceptionRes,
 	InternalServerErrorExceptionRes,
 	UnauthorizedExceptionRes,
 } from '../../common/types/response/exception';
 import {
-	CustomerContestResDto,
+	ContestResDto,
 	DataForContestDto,
 	DataForContestResDto,
-	QueryCustomerContestsDto,
+	CustomerQueryContestsDto,
 } from '../../common/dto/contest';
-import { UserId } from '../../decorators';
+import { Paginate, Roles, UserId } from '../../decorators';
+import { UserRolesEnum } from '../../common/enum/user';
+import { RolesGuard } from '../../guards/roles.guard';
+import { IPagination } from '../../common/interfaces/middleware';
+import { CreatorQueryContestDto } from '../../common/dto/contest/creator-query-contest.dto';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -42,7 +49,7 @@ export class ContestController {
 	})
 	@ApiCookieAuth()
 	@UseGuards(JWTAuthGuard)
-	@Get('data-for-contest')
+	@Get('data')
 	async dataForContest(
 		@Query() query: DataForContestDto,
 	): Promise<DataForContestResDto> {
@@ -60,15 +67,54 @@ export class ContestController {
 	})
 	@ApiOkResponse({
 		description: 'Customer contests data',
-		type: CustomerContestResDto,
+		type: ContestResDto,
+	})
+	@ApiQuery({
+		description: 'Query parameters',
+		type: CustomerQueryContestsDto,
 	})
 	@ApiCookieAuth()
-	@UseGuards(JWTAuthGuard)
-	@Get('customer-contests')
+	@Roles(UserRolesEnum.CUSTOMER)
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@Get('customer')
 	async customerContests(
 		@UserId() id: number,
-		@Query() query: QueryCustomerContestsDto,
-	): Promise<CustomerContestResDto> {
-		return this.contestService.getCustomerContests(id, query);
+		@Paginate() pagination: IPagination,
+		@Query() query,
+	): Promise<ContestResDto> {
+		return this.contestService.getContestsForCustomer(id, query, pagination);
+	}
+
+	@ApiOperation({ description: 'Get all contests for creative' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionRes,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionRes,
+	})
+	@ApiForbiddenResponse({
+		description: 'Access denied message',
+		type: ForbiddenExceptionRes,
+	})
+	@ApiQuery({
+		description: 'Query parameters',
+		type: CreatorQueryContestDto,
+	})
+	@ApiOkResponse({
+		description: 'Customer contests data',
+		type: ContestResDto,
+	})
+	@Roles(UserRolesEnum.CREATOR)
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@ApiCookieAuth()
+	@Get('creator')
+	async contestsForCreative(
+		@UserId() id: number,
+		@Paginate() pagination: IPagination,
+		@Query() query,
+	): Promise<ContestResDto> {
+		return this.contestService.getContestForCreative(id, query, pagination);
 	}
 }

@@ -6,7 +6,7 @@ class countOffers {
 	offers: number;
 }
 
-export class ContestForCustomer {
+export class Contest {
 	@ApiProperty({ description: "Client's active competition ID", example: 1 })
 	id: number;
 
@@ -56,12 +56,13 @@ export class ContestForCustomer {
 	_count: countOffers;
 }
 
-export class CustomerContestResDto {
+export class ContestResDto {
 	@ApiProperty({
 		description: 'List of contests',
 		isArray: true,
 	})
-	contests: ContestForCustomer;
+	contests: Contest;
+
 	@ApiProperty({ description: 'Number of active contests', example: 1 })
 	totalCount: number;
 }

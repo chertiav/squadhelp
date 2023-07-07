@@ -1,15 +1,19 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { OfferStatus, Prisma } from '@prisma/client';
+import { Contest, ContestStatus, OfferStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import {
-	CustomerContestResDto,
+	ContestResDto,
 	DataForContestDto,
 	DataForContestResDto,
-	QueryCustomerContestsDto,
+	CustomerQueryContestsDto,
 } from '../../common/dto/contest';
 import { ICharacterisricForDataContest } from '../../common/interfaces/contest';
 import { AppErrors } from '../../common/errors';
+import { IPagination } from '../../common/interfaces/middleware';
+import { CreatorQueryContestDto } from '../../common/dto/contest/creator-query-contest.dto';
+import { parsBool } from '../../utils';
+import { CONTEST_TYPE, OPTIONS_GET_ALL_CONTESTS } from '../../common/constants';
 
 @Injectable()
 export class ContestService {
@@ -63,24 +67,18 @@ export class ContestService {
 		}
 	}
 
-	public async getCustomerContests(
+	public async getContestsForCustomer(
 		id: number,
-		query: QueryCustomerContestsDto,
-	): Promise<CustomerContestResDto> {
+		query: CustomerQueryContestsDto,
+		pagination: IPagination,
+	): Promise<ContestResDto> {
 		try {
-			const { status, limit, offset }: QueryCustomerContestsDto = query;
+			const status: ContestStatus = query.status;
 			const queryContest: Prisma.ContestFindManyArgs = {
 				where: { userId: id, status },
 				orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
 				select: {
-					id: true,
-					title: true,
-					contestType: true,
-					typeOfName: true,
-					brandStyle: true,
-					typeOfTagline: true,
-					createdAt: true,
-					price: true,
+					...OPTIONS_GET_ALL_CONTESTS,
 					_count: {
 						select: {
 							offers: {
@@ -92,20 +90,10 @@ export class ContestService {
 					},
 				},
 			};
-			const [contests, totalCount]: [contests: any, totalCount: number] =
-				await this.prisma.$transaction([
-					this.prisma.contest.findMany({
-						...queryContest,
-						take: +limit,
-						skip: +offset,
-					}),
-					this.prisma.contest.count({ where: queryContest.where }),
-				]);
-
-			return {
-				contests,
-				totalCount,
-			};
+			return Object.assign(
+				{} as ContestResDto,
+				await this.findManyContestsWidthQuery(queryContest, pagination),
+			);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -114,5 +102,100 @@ export class ContestService {
 				},
 			);
 		}
+	}
+
+	public async getContestForCreative(
+		id: number,
+		query: CreatorQueryContestDto,
+		pagination: IPagination,
+	): Promise<ContestResDto> {
+		try {
+			const predicates: Prisma.ContestFindManyArgs =
+				this.createPredicatesAllContests(id, query);
+			const queryContest: Prisma.ContestFindManyArgs = {
+				where: predicates.where,
+				orderBy: predicates.orderBy,
+				select: {
+					...OPTIONS_GET_ALL_CONTESTS,
+					_count: {
+						select: {
+							offers: {
+								where: {
+									status: OfferStatus.active,
+									userId: parsBool(query.ownEntries) ? id : {},
+								},
+							},
+						},
+					},
+				},
+			};
+			return Object.assign(
+				{} as ContestResDto,
+				await this.findManyContestsWidthQuery(queryContest, pagination),
+			);
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	private async findManyContestsWidthQuery(
+		queryContest: Prisma.ContestFindManyArgs,
+		pagination: IPagination,
+	): Promise<{ contests: Partial<Contest>[]; totalCount: number }> {
+		const [contests, totalCount]: [
+			contests: Partial<Contest>[],
+			totalCount: number,
+		] = await this.prisma.$transaction([
+			this.prisma.contest.findMany({
+				...queryContest,
+				...pagination,
+			}),
+			this.prisma.contest.count({ where: queryContest.where }),
+		]);
+		return {
+			contests,
+			totalCount,
+		};
+	}
+
+	private createPredicatesAllContests(
+		id: number,
+		query: CreatorQueryContestDto,
+	): Prisma.ContestFindManyArgs {
+		const predicates: { where: object; orderBy: any[] } = {
+			where: {},
+			orderBy: [],
+		};
+		const statusDefault: ContestStatus[] = [
+			ContestStatus.finished,
+			ContestStatus.active,
+		];
+		parsBool(query.status)
+			? Object.assign(predicates.where, { status: query.status })
+			: Object.assign(predicates.where, { status: { in: statusDefault } });
+		parsBool(query.typeIndex) &&
+			Object.assign(predicates.where, {
+				contestType: this.getPredicateTypes(query.typeIndex),
+			});
+		parsBool(query.contestId) &&
+			!isNaN(parseInt(query.contestId)) &&
+			Object.assign(predicates.where, { id: +query.contestId });
+		parsBool(query.industry) &&
+			Object.assign(predicates.where, { industry: query.industry });
+		parsBool(query.ownEntries) &&
+			Object.assign(predicates.where, { offers: { some: { userId: id } } });
+		parsBool(query.awardSort) &&
+			predicates.orderBy.push({ price: query.awardSort });
+		predicates.orderBy.push({ createdAt: 'desc' }, { id: 'desc' });
+		return predicates as Prisma.ContestFindManyArgs;
+	}
+
+	private getPredicateTypes(index: string): { in: string[] } {
+		return { in: CONTEST_TYPE[index].split(',') };
 	}
 }

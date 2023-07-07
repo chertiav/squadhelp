@@ -35,3 +35,12 @@ export const seedUserDataCustomer_2 = {
 	password: 'Winchester123+',
 	role: Role.customer,
 };
+
+export const seedUserDataCreator_2 = {
+	firstName: 'Sam',
+	lastName: 'Witcher',
+	displayName: 'sam_supernatural',
+	email: 'sam_supernatural@gmail.com',
+	password: 'Sam_winchester123+',
+	role: Role.creator,
+};

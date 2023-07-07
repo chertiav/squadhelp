@@ -114,6 +114,22 @@ export const seedOffersData = [
 		status: OfferStatus.active,
 	},
 	{
+		userId: 5,
+		contestId: 8,
+		text: 'I am learning',
+		fileName: null,
+		originalFileName: null,
+		status: OfferStatus.active,
+	},
+	{
+		userId: 5,
+		contestId: 8,
+		text: 'I am learning',
+		fileName: null,
+		originalFileName: null,
+		status: OfferStatus.active,
+	},
+	{
 		userId: 3,
 		contestId: 10,
 		text: 'I am learning',
@@ -123,6 +139,14 @@ export const seedOffersData = [
 	},
 	{
 		userId: 3,
+		contestId: 10,
+		text: 'I am learning',
+		fileName: null,
+		originalFileName: null,
+		status: OfferStatus.active,
+	},
+	{
+		userId: 5,
 		contestId: 10,
 		text: 'I am learning',
 		fileName: null,
