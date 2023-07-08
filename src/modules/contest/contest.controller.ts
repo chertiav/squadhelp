@@ -18,16 +18,18 @@ import {
 	UnauthorizedExceptionRes,
 } from '../../common/types/response/exception';
 import {
-	ContestResDto,
 	DataForContestDto,
 	DataForContestResDto,
-	CustomerQueryContestsDto,
+	ContestResDto,
+	ContestModeratorResDto,
+	QueryCustomerContestDto,
+	QueryModeratorContestDto,
+	QueryCreatorContestDto,
 } from '../../common/dto/contest';
 import { Paginate, Roles, UserId } from '../../decorators';
 import { UserRolesEnum } from '../../common/enum/user';
 import { RolesGuard } from '../../guards/roles.guard';
 import { IPagination } from '../../common/interfaces/middleware';
-import { CreatorQueryContestDto } from '../../common/dto/contest/creator-query-contest.dto';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -71,7 +73,7 @@ export class ContestController {
 	})
 	@ApiQuery({
 		description: 'Query parameters',
-		type: CustomerQueryContestsDto,
+		type: QueryCustomerContestDto,
 	})
 	@ApiCookieAuth()
 	@Roles(UserRolesEnum.CUSTOMER)
@@ -100,7 +102,7 @@ export class ContestController {
 	})
 	@ApiQuery({
 		description: 'Query parameters',
-		type: CreatorQueryContestDto,
+		type: QueryCreatorContestDto,
 	})
 	@ApiOkResponse({
 		description: 'Customer contests data',
@@ -110,11 +112,43 @@ export class ContestController {
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
 	@Get('creator')
-	async contestsForCreative(
+	async creatorContests(
 		@UserId() id: number,
 		@Paginate() pagination: IPagination,
 		@Query() query,
 	): Promise<ContestResDto> {
 		return this.contestService.getContestForCreative(id, query, pagination);
+	}
+
+	@ApiOperation({ description: 'Get contests for moderator' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionRes,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionRes,
+	})
+	@ApiForbiddenResponse({
+		description: 'Access denied message',
+		type: ForbiddenExceptionRes,
+	})
+	@ApiQuery({
+		description: 'Query parameters',
+		type: QueryModeratorContestDto,
+	})
+	@ApiOkResponse({
+		description: 'Contests data for moderator',
+		type: ContestModeratorResDto,
+	})
+	@Roles(UserRolesEnum.MODERATOR)
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@ApiCookieAuth()
+	@Get('moderator')
+	async moderatorContests(
+		@Paginate() pagination: IPagination,
+		@Query() query,
+	): Promise<ContestModeratorResDto> {
+		return this.contestService.getContestForModerator(query, pagination);
 	}
 }

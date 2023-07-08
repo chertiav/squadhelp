@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { AppErrors } from '../../../errors';
 export class ForbiddenExceptionRes {
 	@ApiProperty({
 		description: 'Status code error exception',

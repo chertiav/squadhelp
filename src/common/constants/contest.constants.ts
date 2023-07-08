@@ -56,14 +56,17 @@ export const CONTEST_TYPE: string[] = [
 	'logo,tagline',
 	'name,logo',
 ];
-
-export const OPTIONS_GET_ALL_CONTESTS = {
+export const OPTIONS_CONTEST_MODERATOR = {
 	id: true,
 	title: true,
 	contestType: true,
 	typeOfName: true,
+	createdAt: true,
+};
+
+export const OPTIONS_GET_ALL_CONTESTS = {
+	...OPTIONS_CONTEST_MODERATOR,
 	brandStyle: true,
 	typeOfTagline: true,
-	createdAt: true,
 	price: true,
 };

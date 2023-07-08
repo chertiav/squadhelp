@@ -1,28 +1,17 @@
-import { QueryPagination } from '../query';
+import { ContestCommonQuery } from './common-query';
 import { ApiProperty } from '@nestjs/swagger';
 import { ContestStatus } from '@prisma/client';
 
-export class CreatorQueryContestDto extends QueryPagination {
-	@ApiProperty({
-		description: 'Filter by type',
-		example: '1',
-	})
-	typeIndex: string;
-
-	@ApiProperty({
-		description: 'Filter by contest id',
-		required: false,
-		example: '',
-	})
-	contestId: string;
-
-	@ApiProperty({
-		description: 'Filter by industry',
-		required: false,
-		example: '',
-	})
-	industry: string;
-
+export class QueryCreatorContestDto extends ContestCommonQuery {
+	constructor(query) {
+		super();
+		this.typeIndex = query.typeIndex;
+		this.contestId = query.contestId;
+		this.industry = query.industry;
+		this.awardSort = query.awardSort;
+		this.ownEntries = query.ownEntries;
+		this.status = query.status;
+	}
 	@ApiProperty({
 		description: 'Sorting order',
 		example: 'asc',

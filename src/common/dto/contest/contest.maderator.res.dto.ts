@@ -6,7 +6,7 @@ class countOffers {
 	offers: number;
 }
 
-class Contest {
+class ContestModerator {
 	@ApiProperty({ description: "Client's active competition ID", example: 1 })
 	id: number;
 
@@ -29,39 +29,21 @@ class Contest {
 	typeOfName: string | null;
 
 	@ApiProperty({
-		description: "Corporate identity type of the client's active competition",
-		example: null,
-	})
-	brandStyle: string | null;
-
-	@ApiProperty({
-		description: 'Type of typeOfTagline an active customer contest',
-		example: null,
-	})
-	typeOfTagline: string | null;
-
-	@ApiProperty({
 		description: 'Date of start contest',
 		example: '2023-07-05T18:39:42.143Z',
 	})
 	createdAt: string;
 
-	@ApiProperty({
-		description: 'Prize money of the competition',
-		example: '100',
-	})
-	price: string;
-
 	@ApiProperty()
 	_count: countOffers;
 }
 
-export class ContestResDto {
+export class ContestModeratorResDto {
 	@ApiProperty({
 		description: 'List of contests',
 		isArray: true,
 	})
-	contests: Contest;
+	contests: ContestModerator;
 
 	@ApiProperty({ description: 'Number of active contests', example: 1 })
 	totalCount: number;

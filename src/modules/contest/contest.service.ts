@@ -6,14 +6,20 @@ import {
 	ContestResDto,
 	DataForContestDto,
 	DataForContestResDto,
-	CustomerQueryContestsDto,
+	ContestModeratorResDto,
+	QueryCustomerContestDto,
+	QueryCreatorContestDto,
+	QueryModeratorContestDto,
 } from '../../common/dto/contest';
 import { ICharacterisricForDataContest } from '../../common/interfaces/contest';
 import { AppErrors } from '../../common/errors';
 import { IPagination } from '../../common/interfaces/middleware';
-import { CreatorQueryContestDto } from '../../common/dto/contest/creator-query-contest.dto';
 import { parsBool } from '../../utils';
-import { CONTEST_TYPE, OPTIONS_GET_ALL_CONTESTS } from '../../common/constants';
+import {
+	CONTEST_TYPE,
+	OPTIONS_CONTEST_MODERATOR,
+	OPTIONS_GET_ALL_CONTESTS,
+} from '../../common/constants';
 
 @Injectable()
 export class ContestService {
@@ -69,7 +75,7 @@ export class ContestService {
 
 	public async getContestsForCustomer(
 		id: number,
-		query: CustomerQueryContestsDto,
+		query: QueryCustomerContestDto,
 		pagination: IPagination,
 	): Promise<ContestResDto> {
 		try {
@@ -106,12 +112,14 @@ export class ContestService {
 
 	public async getContestForCreative(
 		id: number,
-		query: CreatorQueryContestDto,
+		query: QueryCreatorContestDto,
 		pagination: IPagination,
 	): Promise<ContestResDto> {
 		try {
+			const queryToPredicate: QueryCreatorContestDto =
+				new QueryCreatorContestDto(query);
 			const predicates: Prisma.ContestFindManyArgs =
-				this.createPredicatesAllContests(id, query);
+				this.createPredicatesAllContests(id, queryToPredicate);
 			const queryContest: Prisma.ContestFindManyArgs = {
 				where: predicates.where,
 				orderBy: predicates.orderBy,
@@ -131,6 +139,45 @@ export class ContestService {
 			};
 			return Object.assign(
 				{} as ContestResDto,
+				await this.findManyContestsWidthQuery(queryContest, pagination),
+			);
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async getContestForModerator(
+		query: QueryModeratorContestDto,
+		pagination: IPagination,
+	): Promise<ContestModeratorResDto> {
+		try {
+			const queryToPredicate: QueryModeratorContestDto =
+				new QueryModeratorContestDto(query);
+			const predicates: Prisma.ContestFindManyArgs =
+				this.createPredicatesAllContests(null, queryToPredicate);
+			const queryContest: Prisma.ContestFindManyArgs = {
+				where: predicates.where,
+				orderBy: predicates.orderBy,
+				select: {
+					...OPTIONS_CONTEST_MODERATOR,
+					_count: {
+						select: {
+							offers: {
+								where: {
+									status: OfferStatus.pending,
+								},
+							},
+						},
+					},
+				},
+			};
+			return Object.assign(
+				{} as ContestModeratorResDto,
 				await this.findManyContestsWidthQuery(queryContest, pagination),
 			);
 		} catch (e) {
@@ -165,7 +212,7 @@ export class ContestService {
 
 	private createPredicatesAllContests(
 		id: number,
-		query: CreatorQueryContestDto,
+		query: QueryCreatorContestDto | QueryModeratorContestDto,
 	): Prisma.ContestFindManyArgs {
 		const predicates: { where: object; orderBy: any[] } = {
 			where: {},
@@ -175,9 +222,22 @@ export class ContestService {
 			ContestStatus.finished,
 			ContestStatus.active,
 		];
-		parsBool(query.status)
-			? Object.assign(predicates.where, { status: query.status })
-			: Object.assign(predicates.where, { status: { in: statusDefault } });
+		query instanceof QueryModeratorContestDto &&
+			Object.assign(predicates.where, {
+				status: ContestStatus.active,
+				offers: { some: { status: OfferStatus.pending } },
+			});
+
+		if (query instanceof QueryCreatorContestDto) {
+			parsBool(query.status)
+				? Object.assign(predicates.where, { status: query.status })
+				: Object.assign(predicates.where, { status: { in: statusDefault } });
+			parsBool(query.ownEntries) &&
+				Object.assign(predicates.where, { offers: { some: { userId: id } } });
+			parsBool(query.awardSort) &&
+				predicates.orderBy.push({ price: query.awardSort });
+		}
+
 		parsBool(query.typeIndex) &&
 			Object.assign(predicates.where, {
 				contestType: this.getPredicateTypes(query.typeIndex),
@@ -187,11 +247,9 @@ export class ContestService {
 			Object.assign(predicates.where, { id: +query.contestId });
 		parsBool(query.industry) &&
 			Object.assign(predicates.where, { industry: query.industry });
-		parsBool(query.ownEntries) &&
-			Object.assign(predicates.where, { offers: { some: { userId: id } } });
-		parsBool(query.awardSort) &&
-			predicates.orderBy.push({ price: query.awardSort });
+
 		predicates.orderBy.push({ createdAt: 'desc' }, { id: 'desc' });
+
 		return predicates as Prisma.ContestFindManyArgs;
 	}
 

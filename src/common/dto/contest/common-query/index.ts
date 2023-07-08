@@ -22,3 +22,25 @@ export class QueryPagination {
 	@Min(0)
 	offset: number;
 }
+
+export class ContestCommonQuery extends QueryPagination {
+	@ApiProperty({
+		description: 'Filter by type',
+		example: '1',
+	})
+	typeIndex: string;
+
+	@ApiProperty({
+		description: 'Filter by contest id',
+		required: false,
+		example: '',
+	})
+	contestId: string;
+
+	@ApiProperty({
+		description: 'Filter by industry',
+		required: false,
+		example: '',
+	})
+	industry: string;
+}
