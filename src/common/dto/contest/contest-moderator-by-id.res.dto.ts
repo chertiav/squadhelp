@@ -1,10 +1,5 @@
 import { ContestCommonDto } from './contest.common.dto';
-import {
-	ApiExcludeEndpoint,
-	ApiHideProperty,
-	ApiProperty,
-	ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ContestModeratorByIdResDto extends ContestCommonDto {
 	@ApiPropertyOptional({

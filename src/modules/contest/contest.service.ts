@@ -13,7 +13,19 @@ import {
 	ContestModeratorResDto,
 	ContestResDto,
 } from '../../common/dto/contest';
-import { ICharacterisricForDataContest } from '../../common/interfaces/contest';
+import {
+	DataForContestDto,
+	DataForContestResDto,
+} from '../../common/dto/contest/data';
+import {
+	QueryCreatorContestDto,
+	QueryCustomerContestDto,
+	QueryModeratorContestDto,
+} from '../../common/dto/contest/query';
+import {
+	ICharacteristicForDataContest,
+	ICreateBulkContest,
+} from '../../common/interfaces/contest';
 import { AppErrors } from '../../common/errors';
 import { IPagination } from '../../common/interfaces/middleware';
 import { parsBool } from '../../utils';
@@ -25,16 +37,6 @@ import {
 	OPTIONS_GET_ONE_CONTEST_CUSTOMER,
 	OPTIONS_GET_COUNT_PENDING_OFFERS,
 } from '../../common/constants';
-import { UserRolesEnum } from '../../common/enum/user';
-import {
-	DataForContestDto,
-	DataForContestResDto,
-} from '../../common/dto/contest/data';
-import {
-	QueryCreatorContestDto,
-	QueryCustomerContestDto,
-	QueryModeratorContestDto,
-} from '../../common/dto/contest/query';
 import { UserId } from '../../decorators';
 
 @Injectable()
@@ -52,7 +54,7 @@ export class ContestService {
 				characteristic2,
 				'industry',
 			].filter(Boolean);
-			const characteristics: ICharacterisricForDataContest[] =
+			const characteristics: ICharacteristicForDataContest[] =
 				await this.prisma.selectBox.findMany({
 					where: {
 						type: {
@@ -71,7 +73,7 @@ export class ContestService {
 					),
 				);
 			characteristics.forEach(
-				(characteristic: ICharacterisricForDataContest): void => {
+				(characteristic: ICharacteristicForDataContest): void => {
 					if (!response[characteristic.type]) {
 						response[characteristic.type] = [];
 					}
@@ -256,6 +258,26 @@ export class ContestService {
 				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
 			);
 		return Object.assign({} as ContestModeratorByIdResDto, contest);
+	}
+
+	public async createContests(contests: ICreateBulkContest) {
+		try {
+			const { count }: { count: number } = await this.prisma.contest.createMany(
+				{ data: contests },
+			);
+			if (count)
+				return Promise.reject(
+					new BadRequestException(AppErrors.ERROR_OPENING_CONTEST),
+				);
+			return count;
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
 	}
 
 	private async getContestById(

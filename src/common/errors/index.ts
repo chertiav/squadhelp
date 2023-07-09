@@ -8,4 +8,5 @@ export const AppErrors = {
 		'Internal server error try again later',
 	CANNOT_GET_CONTEST_PREFERENCES: 'Cannot get contest preferences',
 	NO_DATA_FOR_THIS_CONTEST: 'No data for this contest',
+	ERROR_OPENING_CONTEST: 'Error opening contest, please try again later',
 };

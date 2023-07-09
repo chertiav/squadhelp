@@ -94,7 +94,7 @@ export class ContestController {
 	@ApiCookieAuth()
 	@Roles(UserRolesEnum.CUSTOMER)
 	@UseGuards(JWTAuthGuard, RolesGuard)
-	@Get('customer')
+	@Get('for-customer')
 	async contestsForCustomer(
 		@UserId() id: number,
 		@Paginate() pagination: IPagination,
@@ -127,7 +127,7 @@ export class ContestController {
 	@Roles(UserRolesEnum.CREATOR)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('creator')
+	@Get('for-creator')
 	async contestForCreative(
 		@UserId() id: number,
 		@Paginate() pagination: IPagination,
@@ -160,7 +160,7 @@ export class ContestController {
 	@Roles(UserRolesEnum.MODERATOR)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('moderator')
+	@Get('for-moderator')
 	async contestsForModerator(
 		@Paginate() pagination: IPagination,
 		@Query() query,
@@ -192,7 +192,7 @@ export class ContestController {
 	@Roles(UserRolesEnum.CUSTOMER)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('contest-for-customer/:contestId')
+	@Get('for-customer/:contestId')
 	async contestForCustomerById(
 		@UserId() id: number,
 		@Param('contestId', ParseIntPipe) contestId: number,
@@ -224,7 +224,7 @@ export class ContestController {
 	@Roles(UserRolesEnum.CREATOR)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('contest-for-creator/:contestId')
+	@Get('for-creator/:contestId')
 	async contestForCreatorById(
 		@Param('contestId', ParseIntPipe) contestId: number,
 	): Promise<ContestCreatorByIdResDto> {
@@ -255,7 +255,7 @@ export class ContestController {
 	@Roles(UserRolesEnum.MODERATOR)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('contest-for-moderator/:contestId')
+	@Get('for-moderator/:contestId')
 	async contestForModeratorById(
 		@Param('contestId', ParseIntPipe) contestId: number,
 	): Promise<ContestModeratorByIdResDto> {
