@@ -1,15 +1,17 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+	BadRequestException,
+	Injectable,
+	InternalServerErrorException,
+} from '@nestjs/common';
 import { Contest, ContestStatus, OfferStatus, Prisma } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
 import {
-	ContestResDto,
-	DataForContestDto,
-	DataForContestResDto,
+	ContestCreatorByIdResDto,
+	ContestCustomerByIdResDto,
+	ContestModeratorByIdResDto,
 	ContestModeratorResDto,
-	QueryCustomerContestDto,
-	QueryCreatorContestDto,
-	QueryModeratorContestDto,
+	ContestResDto,
 } from '../../common/dto/contest';
 import { ICharacterisricForDataContest } from '../../common/interfaces/contest';
 import { AppErrors } from '../../common/errors';
@@ -17,9 +19,23 @@ import { IPagination } from '../../common/interfaces/middleware';
 import { parsBool } from '../../utils';
 import {
 	CONTEST_TYPE,
-	OPTIONS_CONTEST_MODERATOR,
-	OPTIONS_GET_ALL_CONTESTS,
+	OPTIONS_GET_COUNT_ACTIVE_OFFERS,
+	OPTIONS_GET_CONTESTS,
+	OPTIONS_GET_CONTEST_MODERATOR,
+	OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+	OPTIONS_GET_COUNT_PENDING_OFFERS,
 } from '../../common/constants';
+import { UserRolesEnum } from '../../common/enum/user';
+import {
+	DataForContestDto,
+	DataForContestResDto,
+} from '../../common/dto/contest/data';
+import {
+	QueryCreatorContestDto,
+	QueryCustomerContestDto,
+	QueryModeratorContestDto,
+} from '../../common/dto/contest/query';
+import { UserId } from '../../decorators';
 
 @Injectable()
 export class ContestService {
@@ -84,16 +100,8 @@ export class ContestService {
 				where: { userId: id, status },
 				orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
 				select: {
-					...OPTIONS_GET_ALL_CONTESTS,
-					_count: {
-						select: {
-							offers: {
-								where: {
-									status: OfferStatus.active,
-								},
-							},
-						},
-					},
+					...OPTIONS_GET_CONTESTS,
+					_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
 				},
 			};
 			return Object.assign(
@@ -124,7 +132,7 @@ export class ContestService {
 				where: predicates.where,
 				orderBy: predicates.orderBy,
 				select: {
-					...OPTIONS_GET_ALL_CONTESTS,
+					...OPTIONS_GET_CONTESTS,
 					_count: {
 						select: {
 							offers: {
@@ -164,22 +172,104 @@ export class ContestService {
 				where: predicates.where,
 				orderBy: predicates.orderBy,
 				select: {
-					...OPTIONS_CONTEST_MODERATOR,
-					_count: {
-						select: {
-							offers: {
-								where: {
-									status: OfferStatus.pending,
-								},
-							},
-						},
-					},
+					...OPTIONS_GET_CONTEST_MODERATOR,
+					_count: { ...OPTIONS_GET_COUNT_PENDING_OFFERS },
 				},
 			};
 			return Object.assign(
 				{} as ContestModeratorResDto,
 				await this.findManyContestsWidthQuery(queryContest, pagination),
 			);
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async getContestByIdForCustomer(
+		@UserId() id: number,
+		contestId: number,
+	): Promise<ContestCustomerByIdResDto> {
+		const queryContest: Prisma.ContestFindFirstArgs = {
+			where: { id: contestId, userId: id },
+			select: {
+				...OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+				_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+			},
+		};
+		const contest: Contest = await this.getContestById(queryContest);
+		if (!contest)
+			return Promise.reject(
+				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
+			);
+		return Object.assign({} as ContestCustomerByIdResDto, contest);
+	}
+
+	public async getContestByIdForCreator(
+		contestId: number,
+	): Promise<ContestCreatorByIdResDto> {
+		const queryContest: Prisma.ContestFindFirstArgs = {
+			where: { id: contestId },
+			select: {
+				...OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+				user: {
+					select: {
+						firstName: true,
+						lastName: true,
+						displayName: true,
+						avatar: true,
+					},
+				},
+				_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+			},
+		};
+		const contest: Contest = await this.getContestById(queryContest);
+		if (!contest)
+			return Promise.reject(
+				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
+			);
+		return Object.assign({} as ContestCreatorByIdResDto, contest);
+	}
+
+	public async getContestByIdForModerator(
+		contestId: number,
+	): Promise<ContestModeratorByIdResDto> {
+		const queryContest: Prisma.ContestFindFirstArgs = {
+			where: {
+				id: contestId,
+				status: ContestStatus.active,
+				offers: { some: { status: OfferStatus.pending } },
+			},
+			select: {
+				...OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+				price: false,
+				_count: { ...OPTIONS_GET_COUNT_PENDING_OFFERS },
+			},
+		};
+		const contest: Contest = await this.getContestById(queryContest);
+		if (!contest)
+			return Promise.reject(
+				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
+			);
+		return Object.assign({} as ContestModeratorByIdResDto, contest);
+	}
+
+	private async getContestById(
+		queryContest: Prisma.ContestFindFirstArgs,
+	): Promise<Contest> {
+		try {
+			const contest: Contest = await this.prisma.contest.findFirst(
+				queryContest,
+			);
+			if (!contest)
+				return Promise.reject(
+					new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
+				);
+			return contest;
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,

@@ -1,8 +1,8 @@
-import { ContestCommonQuery } from './common-query';
+import { ContestCommonQueryDto } from './index';
 import { ApiProperty } from '@nestjs/swagger';
 import { ContestStatus } from '@prisma/client';
 
-export class QueryCreatorContestDto extends ContestCommonQuery {
+export class QueryCreatorContestDto extends ContestCommonQueryDto {
 	constructor(query) {
 		super();
 		this.typeIndex = query.typeIndex;

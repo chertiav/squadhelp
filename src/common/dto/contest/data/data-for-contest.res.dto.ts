@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { OPTIONS_FOR_API_PROPERTY } from '../../constants';
+import { OPTIONS_FOR_API_PROPERTY } from '../../../constants';
 
 export class DataForContestResDto {
 	@ApiProperty({

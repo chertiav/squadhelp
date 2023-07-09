@@ -1,6 +1,6 @@
-import { ContestCommonQuery } from './common-query';
+import { ContestCommonQueryDto } from './index';
 
-export class QueryModeratorContestDto extends ContestCommonQuery {
+export class QueryModeratorContestDto extends ContestCommonQueryDto {
 	constructor(query) {
 		super();
 		this.typeIndex = query.typeIndex;

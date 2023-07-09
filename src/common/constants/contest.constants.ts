@@ -1,3 +1,5 @@
+import { OfferStatus } from '@prisma/client';
+
 export const OPTIONS_FOR_API_PROPERTY = {
 	DATA_FOR_CONTEST: {
 		COMMON_PROPERTY: {
@@ -56,7 +58,7 @@ export const CONTEST_TYPE: string[] = [
 	'logo,tagline',
 	'name,logo',
 ];
-export const OPTIONS_CONTEST_MODERATOR = {
+export const OPTIONS_GET_CONTEST_MODERATOR = {
 	id: true,
 	title: true,
 	contestType: true,
@@ -64,9 +66,39 @@ export const OPTIONS_CONTEST_MODERATOR = {
 	createdAt: true,
 };
 
-export const OPTIONS_GET_ALL_CONTESTS = {
-	...OPTIONS_CONTEST_MODERATOR,
+export const OPTIONS_GET_CONTESTS = {
+	...OPTIONS_GET_CONTEST_MODERATOR,
 	brandStyle: true,
 	typeOfTagline: true,
 	price: true,
+};
+
+export const OPTIONS_GET_ONE_CONTEST_CUSTOMER = {
+	...OPTIONS_GET_CONTESTS,
+	fileName: true,
+	focusOfWork: true,
+	industry: true,
+	nameVenture: true,
+	styleName: true,
+	targetCustomer: true,
+};
+
+export const OPTIONS_GET_COUNT_ACTIVE_OFFERS = {
+	select: {
+		offers: {
+			where: {
+				status: OfferStatus.active,
+			},
+		},
+	},
+};
+
+export const OPTIONS_GET_COUNT_PENDING_OFFERS = {
+	select: {
+		offers: {
+			where: {
+				status: OfferStatus.pending,
+			},
+		},
+	},
 };

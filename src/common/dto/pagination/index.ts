@@ -2,7 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsNumber, Max, Min } from 'class-validator';
 
-export class QueryPagination {
+export class QueryPaginationDto {
 	@ApiProperty({
 		description: 'Limit on the number of contests per request',
 		example: 8,
@@ -21,26 +21,4 @@ export class QueryPagination {
 	@IsNumber()
 	@Min(0)
 	offset: number;
-}
-
-export class ContestCommonQuery extends QueryPagination {
-	@ApiProperty({
-		description: 'Filter by type',
-		example: '1',
-	})
-	typeIndex: string;
-
-	@ApiProperty({
-		description: 'Filter by contest id',
-		required: false,
-		example: '',
-	})
-	contestId: string;
-
-	@ApiProperty({
-		description: 'Filter by industry',
-		required: false,
-		example: '',
-	})
-	industry: string;
 }
