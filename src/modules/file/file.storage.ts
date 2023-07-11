@@ -38,10 +38,31 @@ const filterImage = (
 		? cb(null, true)
 		: cb(new BadRequestException('Invalid file format'), false);
 };
+
+export const filterFile = (
+	req: Request,
+	file: Express.Multer.File,
+	cb: (Error, boolean) => void,
+): void => {
+	const MIMETYPE_REGEXP =
+		/^application\/(msword|vnd.openxmlformats-officedocument.wordprocessingml.document|vnd.ms-powerpoint|vnd.openxmlformats-officedocument.presentationml.presentation|pdf)$/;
+	MIMETYPE_REGEXP.test(file.mimetype)
+		? cb(null, true)
+		: cb(new BadRequestException('Invalid file format'), false);
+};
+
 export const imageStorage: {
 	storage: StorageEngine;
 	fileFilter: (req, file, cb) => void;
 } = {
 	storage: storageFiles,
 	fileFilter: filterImage,
+};
+
+export const fileStorage: {
+	storage: StorageEngine;
+	fileFilter: (req, file, cb) => void;
+} = {
+	storage: storageFiles,
+	fileFilter: filterFile,
 };
