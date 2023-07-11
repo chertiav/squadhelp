@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
-import { User } from '@prisma/client';
+import { PrismaClient, User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
 	CreateUserDto,
@@ -17,6 +17,7 @@ import { AppErrors } from '../../common/errors';
 import { IUserUpdate } from '../../common/interfaces/user';
 import { SELECT_USER_FIELDS } from '../../common/constants';
 import { FileService } from '../file/file.service';
+import { ITXClientDenyList } from '@prisma/client/runtime';
 
 @Injectable()
 export class UserService {
@@ -102,7 +103,7 @@ export class UserService {
 		id: number,
 	): Promise<InfoUserDto> {
 		try {
-			dto.deleteAvatar && this.fileService.removeFile(dto.deleteAvatar);
+			dto.deleteFileName && this.fileService.removeFile(dto.deleteFileName);
 			const userUpdateData: IUserUpdate = {
 				firstName: dto.firstName,
 				lastName: dto.lastName,
@@ -110,7 +111,9 @@ export class UserService {
 				avatar: dto.avatar,
 			};
 			const updateUser: InfoUserDto = await this.prisma.$transaction(
-				async (prisma) => {
+				async (
+					prisma: Omit<PrismaClient, ITXClientDenyList>,
+				): Promise<InfoUserDto> => {
 					return prisma.user.update({
 						where: { id },
 						data: { ...userUpdateData },

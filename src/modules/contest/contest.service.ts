@@ -3,14 +3,22 @@ import {
 	Injectable,
 	InternalServerErrorException,
 } from '@nestjs/common';
-import { Contest, ContestStatus, OfferStatus, Prisma } from '@prisma/client';
+import {
+	Contest,
+	ContestStatus,
+	OfferStatus,
+	Prisma,
+	PrismaClient,
+} from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
+import { ITXClientDenyList } from '@prisma/client/runtime';
 import {
 	ContestCreatorByIdResDto,
 	ContestCustomerByIdResDto,
 	ContestModeratorByIdResDto,
 	ContestModeratorResDto,
+	ContestUpdateDto,
 	ContestResDto,
 } from '../../common/dto/contest';
 import {
@@ -32,16 +40,20 @@ import { parsBool } from '../../utils';
 import {
 	CONTEST_TYPE,
 	OPTIONS_GET_COUNT_ACTIVE_OFFERS,
-	OPTIONS_GET_CONTESTS,
-	OPTIONS_GET_CONTEST_MODERATOR,
-	OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+	OPTIONS_GET_ALL_CONTESTS,
+	OPTIONS_GET_ALL_CONTESTS_MODERATOR,
+	OPTIONS_GET_ONE_CONTEST,
 	OPTIONS_GET_COUNT_PENDING_OFFERS,
 } from '../../common/constants';
 import { UserId } from '../../decorators';
+import { FileService } from '../file/file.service';
 
 @Injectable()
 export class ContestService {
-	constructor(private readonly prisma: PrismaService) {}
+	constructor(
+		private readonly prisma: PrismaService,
+		private readonly fileService: FileService,
+	) {}
 
 	public async getDataForContest(
 		query: DataForContestDto,
@@ -102,14 +114,13 @@ export class ContestService {
 				where: { userId: id, status },
 				orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
 				select: {
-					...OPTIONS_GET_CONTESTS,
+					...OPTIONS_GET_ALL_CONTESTS,
 					_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
 				},
 			};
-			return Object.assign(
-				{} as ContestResDto,
-				await this.findManyContestsWidthQuery(queryContest, pagination),
-			);
+			const contests: { contests: Partial<Contest>[]; totalCount: number } =
+				await this.findManyContestsWidthQuery(queryContest, pagination);
+			return Object.assign({} as ContestResDto, contests);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -134,7 +145,7 @@ export class ContestService {
 				where: predicates.where,
 				orderBy: predicates.orderBy,
 				select: {
-					...OPTIONS_GET_CONTESTS,
+					...OPTIONS_GET_ALL_CONTESTS,
 					_count: {
 						select: {
 							offers: {
@@ -147,10 +158,9 @@ export class ContestService {
 					},
 				},
 			};
-			return Object.assign(
-				{} as ContestResDto,
-				await this.findManyContestsWidthQuery(queryContest, pagination),
-			);
+			const contests: { contests: Partial<Contest>[]; totalCount: number } =
+				await this.findManyContestsWidthQuery(queryContest, pagination);
+			return Object.assign({} as ContestResDto, contests);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -174,14 +184,13 @@ export class ContestService {
 				where: predicates.where,
 				orderBy: predicates.orderBy,
 				select: {
-					...OPTIONS_GET_CONTEST_MODERATOR,
+					...OPTIONS_GET_ALL_CONTESTS_MODERATOR,
 					_count: { ...OPTIONS_GET_COUNT_PENDING_OFFERS },
 				},
 			};
-			return Object.assign(
-				{} as ContestModeratorResDto,
-				await this.findManyContestsWidthQuery(queryContest, pagination),
-			);
+			const contests: { contests: Partial<Contest>[]; totalCount: number } =
+				await this.findManyContestsWidthQuery(queryContest, pagination);
+			return Object.assign({} as ContestModeratorResDto, contests);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -199,7 +208,7 @@ export class ContestService {
 		const queryContest: Prisma.ContestFindFirstArgs = {
 			where: { id: contestId, userId: id },
 			select: {
-				...OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+				...OPTIONS_GET_ONE_CONTEST,
 				_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
 			},
 		};
@@ -217,7 +226,7 @@ export class ContestService {
 		const queryContest: Prisma.ContestFindFirstArgs = {
 			where: { id: contestId },
 			select: {
-				...OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+				...OPTIONS_GET_ONE_CONTEST,
 				user: {
 					select: {
 						firstName: true,
@@ -247,7 +256,7 @@ export class ContestService {
 				offers: { some: { status: OfferStatus.pending } },
 			},
 			select: {
-				...OPTIONS_GET_ONE_CONTEST_CUSTOMER,
+				...OPTIONS_GET_ONE_CONTEST,
 				price: false,
 				_count: { ...OPTIONS_GET_COUNT_PENDING_OFFERS },
 			},
@@ -260,7 +269,7 @@ export class ContestService {
 		return Object.assign({} as ContestModeratorByIdResDto, contest);
 	}
 
-	public async createContests(contests: ICreateBulkContest) {
+	public async createContests(contests: ICreateBulkContest): Promise<number> {
 		try {
 			const { count }: { count: number } = await this.prisma.contest.createMany(
 				{ data: contests },
@@ -270,6 +279,47 @@ export class ContestService {
 					new BadRequestException(AppErrors.ERROR_OPENING_CONTEST),
 				);
 			return count;
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async updateContest(
+		dto: ContestUpdateDto,
+		userId: number,
+	): Promise<ContestCustomerByIdResDto> {
+		try {
+			const { contestId, deleteFileName, ...contestUpdateData } = dto;
+			const accessCheck: boolean = await this.checkAccessUpdateContest(
+				userId,
+				+contestId,
+			);
+			if (!accessCheck)
+				return Promise.reject(
+					new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
+				);
+			delete contestUpdateData.file;
+			const updateContest: Partial<Contest> = await this.prisma.$transaction(
+				async (
+					prisma: Omit<PrismaClient, ITXClientDenyList>,
+				): Promise<Partial<Contest>> => {
+					return prisma.contest.update({
+						where: { id: +contestId },
+						data: contestUpdateData,
+						select: {
+							...OPTIONS_GET_ONE_CONTEST,
+							_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+						},
+					});
+				},
+			);
+			deleteFileName && this.fileService.removeFile(deleteFileName);
+			return Object.assign({} as ContestCustomerByIdResDto, updateContest);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -300,6 +350,19 @@ export class ContestService {
 				},
 			);
 		}
+	}
+
+	private async checkAccessUpdateContest(
+		userId: number,
+		contestId: number,
+	): Promise<boolean> {
+		const result: Contest | null = await this.prisma.contest.findFirst({
+			where: {
+				id: contestId,
+				userId: userId,
+			},
+		});
+		return !!result;
 	}
 
 	private async findManyContestsWidthQuery(

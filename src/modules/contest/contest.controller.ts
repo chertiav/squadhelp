@@ -1,13 +1,19 @@
 import {
+	Body,
 	Controller,
 	Get,
 	Param,
 	ParseIntPipe,
+	Patch,
 	Query,
+	UploadedFile,
 	UseGuards,
+	UseInterceptors,
 } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
+	ApiBody,
+	ApiConsumes,
 	ApiCookieAuth,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
@@ -46,6 +52,12 @@ import {
 	QueryCustomerContestDto,
 	QueryModeratorContestDto,
 } from '../../common/dto/contest/query';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { fileStorage } from '../file/file.storage';
+import { UpdateFileInterceptor } from '../../interceptors';
+import { AppMessages } from '../../common/messages';
+import { ContestUpdateDto } from '../../common/dto/contest/contest-update.dto';
+import { ContestUpdateResDto } from '../../common/dto/contest/contest-update.res.dto';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -260,5 +272,50 @@ export class ContestController {
 		@Param('contestId', ParseIntPipe) contestId: number,
 	): Promise<ContestModeratorByIdResDto> {
 		return this.contestService.getContestByIdForModerator(contestId);
+	}
+
+	@ApiOperation({ description: 'Update contest' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionRes,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionRes,
+	})
+	@ApiForbiddenResponse({
+		description: 'Access denied message',
+		type: ForbiddenExceptionRes,
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid request data message',
+		type: BadRequestExceptionRes,
+	})
+	@ApiOkResponse({
+		description: 'Data with updated competition conditions',
+		type: ContestUpdateResDto,
+	})
+	@ApiConsumes('multipart/form-data')
+	@ApiBody({
+		description: 'Contest data for update',
+		type: ContestUpdateDto,
+	})
+	@UseInterceptors(
+		FileInterceptor('file', {
+			...fileStorage,
+		}),
+		UpdateFileInterceptor,
+	)
+	@Roles(UserRolesEnum.CUSTOMER)
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@ApiCookieAuth()
+	@Patch('update')
+	async contestUpdate(
+		@UserId() userId: number,
+		@UploadedFile() file: Express.Multer.File,
+		@Body() dto: ContestUpdateDto,
+	): Promise<ContestUpdateResDto> {
+		const contest: any = await this.contestService.updateContest(dto, userId);
+		return { contest, message: AppMessages.MSG_CONTEST_INFORMATION_UPDATED };
 	}
 }

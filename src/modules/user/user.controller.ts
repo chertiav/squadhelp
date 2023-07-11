@@ -31,7 +31,7 @@ import {
 } from '../../common/types/response/exception';
 import { JWTAuthGuard } from '../../guards';
 import { UserService } from './user.service';
-import { UserUpdateFileInterceptor } from '../../intercptors';
+import { UpdateFileInterceptor } from '../../interceptors';
 import { InfoUserDto, UpdateUserDto } from '../../common/dto/user';
 
 @ApiTags('user')
@@ -64,7 +64,7 @@ export class UserController {
 		FileInterceptor('file', {
 			...imageStorage,
 		}),
-		UserUpdateFileInterceptor,
+		UpdateFileInterceptor,
 	)
 	@Patch('update')
 	async update(

@@ -58,7 +58,7 @@ export const CONTEST_TYPE: string[] = [
 	'logo,tagline',
 	'name,logo',
 ];
-export const OPTIONS_GET_CONTEST_MODERATOR = {
+export const OPTIONS_GET_ALL_CONTESTS_MODERATOR = {
 	id: true,
 	title: true,
 	contestType: true,
@@ -66,16 +66,17 @@ export const OPTIONS_GET_CONTEST_MODERATOR = {
 	createdAt: true,
 };
 
-export const OPTIONS_GET_CONTESTS = {
-	...OPTIONS_GET_CONTEST_MODERATOR,
+export const OPTIONS_GET_ALL_CONTESTS = {
+	...OPTIONS_GET_ALL_CONTESTS_MODERATOR,
 	brandStyle: true,
 	typeOfTagline: true,
 	price: true,
 };
 
-export const OPTIONS_GET_ONE_CONTEST_CUSTOMER = {
-	...OPTIONS_GET_CONTESTS,
+export const OPTIONS_GET_ONE_CONTEST = {
+	...OPTIONS_GET_ALL_CONTESTS,
 	fileName: true,
+	originalFileName: true,
 	focusOfWork: true,
 	industry: true,
 	nameVenture: true,

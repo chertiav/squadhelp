@@ -36,9 +36,10 @@ export class UpdateUserDto {
 
 	@ApiProperty({
 		description: 'The name of the file to be deleted',
-		example: 'bd4c130d-84c6-43e9-a618-027940613ebb.jpg',
+		example: '',
+		required: false,
 	})
-	deleteAvatar?: string;
+	deleteFileName?: string;
 
 	@ApiFile()
 	file?: Express.Multer.File;
