@@ -32,31 +32,10 @@ import { AppMessages } from '../../messages';
 
 // data for contest
 export class DataContestDto {
-	@ApiProperty({
-		...ContestConstants.OPTIONS_API_PROPERTY_DATA_CONTEST,
-		example: ContestConstants.INDUSTRY_API_PROPERTY_DATA_CONTEST,
-	})
 	industry: Industry[];
-	@ApiProperty({
-		...ContestConstants.OPTIONS_API_PROPERTY_DATA_CONTEST,
-		example: Object.keys(TypeOfName),
-	})
 	typeOfName?: TypeOfName[];
-
-	@ApiProperty({
-		...ContestConstants.OPTIONS_API_PROPERTY_DATA_CONTEST,
-		example: Object.keys(StyleName),
-	})
 	nameStyle?: StyleName[];
-	@ApiProperty({
-		...ContestConstants.OPTIONS_API_PROPERTY_DATA_CONTEST,
-		example: ContestConstants.BRAND_STYLE_API_PROPERTY_DATA_CONTEST,
-	})
 	brandStyle?: BrandStyle[];
-	@ApiProperty({
-		...ContestConstants.OPTIONS_API_PROPERTY_DATA_CONTEST,
-		example: Object.keys(TypeOfTagline),
-	})
 	typeOfTagline?: TypeOfTagline[];
 }
 

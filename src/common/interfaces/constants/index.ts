@@ -1,4 +1,9 @@
-import { OfferStatus } from '@prisma/client';
+import {
+	OfferStatus,
+	StyleName,
+	TypeOfName,
+	TypeOfTagline,
+} from '@prisma/client';
 
 //auth
 export interface IAuthCookiesOptions {
@@ -19,6 +24,15 @@ export interface ISelectUserFields extends ISelectPublicUserOptions {
 	email: boolean;
 }
 
+// data for contest
+export interface IDataForContest {
+	industry: string[];
+	typeOfName?: TypeOfName[];
+	nameStyle?: StyleName[];
+	brandStyle?: string[];
+	typeOfTagline?: TypeOfTagline[];
+}
+
 //common
 export interface ILogFile {
 	PATH: string;
@@ -27,13 +41,6 @@ export interface ILogFile {
 }
 
 //contents
-
-export interface IOptionsApiPropertyDadaContest {
-	type: string;
-	items: {
-		type: string;
-	};
-}
 
 export interface IOptionsGetAllContestsModerator {
 	id: boolean;

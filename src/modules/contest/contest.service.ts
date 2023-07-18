@@ -22,24 +22,24 @@ import { ContestConstants } from '../../common/constants';
 import { UserId } from '../../decorators';
 import { FileService } from '../file/file.service';
 import {
+	ContestDto,
+	ContestsResDto,
+	CreatorContestByIdResDto,
+	CreatorContestsResDto,
+	CustomerContestByIdResDto,
+	CustomerContestsResDto,
 	DataContestDto,
-	NameDataContestResDto,
+	LogoContestUpdateDto,
 	LogoDataContestResDto,
-	TaglineDataContestResDto,
+	ModeratorContestByIdResDto,
+	ModeratorContestResDto,
+	NameContestUpdateData,
+	NameDataContestResDto,
 	QueryCreatorContestDto,
 	QueryCustomerContestDto,
 	QueryModeratorContestDto,
-	ContestDto,
-	ContestsResDto,
-	ModeratorContestResDto,
-	CreatorContestsResDto,
-	CustomerContestsResDto,
-	CustomerContestByIdResDto,
-	CreatorContestByIdResDto,
-	ModeratorContestByIdResDto,
-	NameContestUpdateData,
 	TagLineContestUpdateDto,
-	LogoContestUpdateDto,
+	TaglineDataContestResDto,
 } from '../../common/dto/contest';
 import {
 	ICharacteristicsDataContest,
@@ -54,22 +54,30 @@ export class ContestService {
 		private readonly fileService: FileService,
 	) {}
 
-	public async getDataNameForContest(): Promise<NameDataContestResDto> {
-		const queryData: IQueryDataContest = {
-			characteristic1: 'nameStyle',
-			characteristic2: 'typeOfName',
-		};
-		return this.getDataForContest(queryData);
-	}
-
-	public async getDataTaglineForContest(): Promise<TaglineDataContestResDto> {
-		const queryData: IQueryDataContest = { characteristic1: 'typeOfTagline' };
-		return this.getDataForContest(queryData);
-	}
-
-	public async getDataLogoForContest(): Promise<LogoDataContestResDto> {
-		const queryData: IQueryDataContest = { characteristic1: 'brandStyle' };
-		return await this.getDataForContest(queryData);
+	public async getDataNewContest(
+		contestType: ContestType,
+	): Promise<
+		NameDataContestResDto | LogoDataContestResDto | TaglineDataContestResDto
+	> {
+		switch (contestType) {
+			case ContestType.name: {
+				const queryData: IQueryDataContest = {
+					characteristic1: 'nameStyle',
+					characteristic2: 'typeOfName',
+				};
+				return await this.getDataForContest(queryData);
+			}
+			case ContestType.logo: {
+				const queryData: IQueryDataContest = { characteristic1: 'brandStyle' };
+				return await this.getDataForContest(queryData);
+			}
+			case ContestType.tagline: {
+				const queryData: IQueryDataContest = {
+					characteristic1: 'typeOfTagline',
+				};
+				return await this.getDataForContest(queryData);
+			}
+		}
 	}
 
 	public async getContestsForCustomer(
@@ -383,7 +391,9 @@ export class ContestService {
 
 	private async getDataForContest(
 		query: IQueryDataContest,
-	): Promise<DataContestDto> {
+	): Promise<
+		NameDataContestResDto | LogoDataContestResDto | TaglineDataContestResDto
+	> {
 		try {
 			const response: DataContestDto = {
 				industry: [],

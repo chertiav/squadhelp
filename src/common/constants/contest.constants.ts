@@ -1,6 +1,13 @@
-import { ContestStatus, Industry, OfferStatus } from '@prisma/client';
 import {
-	IOptionsApiPropertyDadaContest,
+	ContestStatus,
+	Industry,
+	OfferStatus,
+	StyleName,
+	TypeOfName,
+	TypeOfTagline,
+} from '@prisma/client';
+import {
+	IDataForContest,
 	IOptionsGetAllContests,
 	IOptionsGetAllContestsModerator,
 	IOptionsGetCountActiveOffers,
@@ -29,14 +36,21 @@ export const BRAND_STYLE_API_PROPERTY_DATA_CONTEST: string[] = [
 	'Brick & Mortar',
 	'Photo-based',
 ];
+export const API_OK_RESPONSE_EXAMPLES_NAME: IDataForContest = {
+	industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
+	typeOfName: Object.values(TypeOfName),
+	nameStyle: Object.values(StyleName),
+};
 
-export const OPTIONS_API_PROPERTY_DATA_CONTEST: IOptionsApiPropertyDadaContest =
-	{
-		type: 'array',
-		items: {
-			type: 'string',
-		},
-	};
+export const API_OK_RESPONSE_EXAMPLES_LOGO: IDataForContest = {
+	industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
+	brandStyle: BRAND_STYLE_API_PROPERTY_DATA_CONTEST,
+};
+
+export const API_OK_RESPONSE_EXAMPLES_TAG_LINE: IDataForContest = {
+	industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
+	typeOfTagline: Object.values(TypeOfTagline),
+};
 
 // get All contests
 
