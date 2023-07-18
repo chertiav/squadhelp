@@ -4,12 +4,10 @@ import * as bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 import { UserService } from '../user/user.service';
 import { TokenService } from '../token/token.service';
-import {
-	CreateUserDto,
-	LoginUserDto,
-	PublicUserDto,
-} from '../../common/dto/user';
 import { AppErrors } from '../../common/errors';
+import { LoginAuthDto } from '../../common/dto/auth';
+import { IAuthUser } from '../../common/interfaces/auth';
+import { CreateUserDto, PublicUserDto } from '../../common/dto/user';
 
 @Injectable()
 export class AuthService {
@@ -33,20 +31,15 @@ export class AuthService {
 		return user;
 	}
 
-	public async register(
-		dto: CreateUserDto,
-	): Promise<{ user: PublicUserDto; token: string }> {
-		const userData: User = await this.userService.createUser(dto);
-		const publicUser: PublicUserDto = new PublicUserDto(userData);
+	public async register(dto: CreateUserDto): Promise<IAuthUser> {
+		const publicUser: PublicUserDto = await this.userService.createUser(dto);
 		const token: string = await this.tokenService.generateJwtToken({
 			...publicUser,
 		});
 		return { user: publicUser, token };
 	}
 
-	public async login(
-		dto: LoginUserDto,
-	): Promise<{ user: PublicUserDto; token: string }> {
+	public async login(dto: LoginAuthDto): Promise<IAuthUser> {
 		const publicUser: PublicUserDto = await this.userService.getPublicUser(
 			dto.email,
 		);

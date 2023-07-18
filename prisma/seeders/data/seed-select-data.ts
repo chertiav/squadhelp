@@ -14,7 +14,7 @@ export const seedSelectData = [
 	{ type: 'typeOfTagline', describe: 'Descriptive' },
 	{ type: 'typeOfTagline', describe: 'Modern' },
 	{ type: 'typeOfTagline', describe: 'Any' },
-	{ type: 'brandStyle', describe: 'Techy' },
+	{ type: 'brandStyle', describe: 'Tech' },
 	{ type: 'brandStyle', describe: 'Fun' },
 	{ type: 'brandStyle', describe: 'Fancy' },
 	{ type: 'brandStyle', describe: 'Minimal' },

@@ -6,18 +6,17 @@ import {
 import * as bcrypt from 'bcrypt';
 
 import { PrismaClient, User } from '@prisma/client';
+import { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { PrismaService } from '../prisma/prisma.service';
+import { AppErrors } from '../../common/errors';
+import { UserConstants } from '../../common/constants';
+import { FileService } from '../file/file.service';
 import {
 	CreateUserDto,
 	InfoUserDto,
 	PublicUserDto,
 	UpdateUserDto,
 } from '../../common/dto/user';
-import { AppErrors } from '../../common/errors';
-import { IUserUpdate } from '../../common/interfaces/user';
-import { SELECT_USER_FIELDS } from '../../common/constants';
-import { FileService } from '../file/file.service';
-import { ITXClientDenyList } from '@prisma/client/runtime';
 
 @Injectable()
 export class UserService {
@@ -41,18 +40,22 @@ export class UserService {
 		}
 	}
 
-	public async createUser(dto: CreateUserDto): Promise<User> {
+	public async createUser(dto: CreateUserDto): Promise<PublicUserDto> {
 		try {
-			return this.prisma.$transaction(async () => {
+			return this.prisma.$transaction(async (): Promise<PublicUserDto> => {
 				const existsUser: User | null = await this.findOne({
 					where: { email: dto.email },
 				});
 				if (existsUser) throw new BadRequestException(AppErrors.USER_EXISTS);
 				const hashPassword: string = await this.getHashPassword(dto.password);
+
 				return this.prisma.user.create({
 					data: {
 						...dto,
 						password: hashPassword,
+					},
+					select: {
+						...UserConstants.SELECT_PUBLIC_USERS_OPTIONS,
 					},
 				});
 			});
@@ -68,10 +71,12 @@ export class UserService {
 
 	public async getPublicUser(email: string): Promise<PublicUserDto> {
 		try {
-			const user: User = await this.findOne({
+			return await this.prisma.user.findUnique({
 				where: { email },
+				select: {
+					...UserConstants.SELECT_PUBLIC_USERS_OPTIONS,
+				},
 			});
-			return new PublicUserDto(user);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -84,10 +89,12 @@ export class UserService {
 
 	public async getInfoUser(id: number): Promise<InfoUserDto> {
 		try {
-			const user: User = await this.findOne({
+			return await this.prisma.user.findUnique({
 				where: { id },
+				select: {
+					...UserConstants.SELECT_USER_FIELDS,
+				},
 			});
-			return new InfoUserDto(user);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -103,8 +110,7 @@ export class UserService {
 		id: number,
 	): Promise<InfoUserDto> {
 		try {
-			dto.deleteFileName && this.fileService.removeFile(dto.deleteFileName);
-			const userUpdateData: IUserUpdate = {
+			const userUpdateData: Partial<UpdateUserDto> = {
 				firstName: dto.firstName,
 				lastName: dto.lastName,
 				displayName: dto.displayName,
@@ -117,11 +123,14 @@ export class UserService {
 					return prisma.user.update({
 						where: { id },
 						data: { ...userUpdateData },
-						select: { ...SELECT_USER_FIELDS },
+						select: { ...UserConstants.SELECT_USER_FIELDS },
 					});
 				},
 			);
-			if (updateUser) return updateUser;
+			if (updateUser) {
+				dto.deleteFileName && this.fileService.removeFile(dto.deleteFileName);
+				return updateUser;
+			}
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,

@@ -1,16 +1,23 @@
 import { RequestMethod } from '@nestjs/common';
 
-export const paginateMwConfig: { path: string; method: RequestMethod }[] = [
+export const paginateMwConfig: {
+	version: string;
+	path: string;
+	method: RequestMethod;
+}[] = [
 	{
-		path: 'contest/customer',
+		version: '1',
+		path: 'contest/cu',
 		method: RequestMethod.GET,
 	},
 	{
-		path: 'contest/creator',
+		version: '1',
+		path: 'contest/cr',
 		method: RequestMethod.GET,
 	},
 	{
-		path: 'contest/moderator',
+		version: '1',
+		path: 'contest/mo',
 		method: RequestMethod.GET,
 	},
 ];

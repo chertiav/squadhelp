@@ -7,7 +7,7 @@ import {
 import { Observable } from 'rxjs';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 
-import { DEFAULT_AVATAR_NAME } from '../common/constants';
+import { CommonConstants } from '../common/constants';
 
 @Injectable()
 export class UpdateFileInterceptor implements NestInterceptor {
@@ -15,10 +15,10 @@ export class UpdateFileInterceptor implements NestInterceptor {
 		const ctx: HttpArgumentsHost = context.switchToHttp();
 		const req = ctx.getRequest();
 		if (req.body && req.file) {
-			if (!req.body?.contestId) {
+			if (!req.body?.industry) {
 				req.body.avatar = req.file.filename;
 			}
-			if (req.body?.contestId) {
+			if (req.body?.industry) {
 				const fileNameEncode: string = Buffer.from(
 					req.file.originalname,
 					'latin1',
@@ -28,14 +28,15 @@ export class UpdateFileInterceptor implements NestInterceptor {
 			}
 		}
 		if (req.body.deleteFileName && !req.file) {
-			if (!req.body?.contestId) {
-				req.body.avatar = DEFAULT_AVATAR_NAME;
+			if (!req.body?.industry) {
+				req.body.avatar = CommonConstants.DEFAULT_AVATAR_NAME;
 			}
-			if (req.body?.contestId) {
-				req.body.originalFileName = '';
-				req.body.fileName = '';
+			if (req.body?.industry) {
+				req.body.originalFileName = null;
+				req.body.fileName = null;
 			}
 		}
+		if (!req.file && !req.body?.file) delete req.body?.file;
 		return next.handle();
 	}
 }

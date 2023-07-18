@@ -6,47 +6,46 @@ import {
 import {
 	Contest,
 	ContestStatus,
+	ContestType,
+	Industry,
 	OfferStatus,
 	Prisma,
 	PrismaClient,
 } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { ITXClientDenyList } from '@prisma/client/runtime';
+import { ITXClientDenyList } from '@prisma/client/runtime/library';
+import { AppErrors } from '../../common/errors';
+import { IPagination } from '../../common/interfaces/pagination';
+import { parsBool } from '../../utils';
+import { ContestConstants } from '../../common/constants';
+import { UserId } from '../../decorators';
+import { FileService } from '../file/file.service';
 import {
-	ContestCreatorByIdResDto,
-	ContestCustomerByIdResDto,
-	ContestModeratorByIdResDto,
-	ContestModeratorResDto,
-	ContestUpdateDto,
-	ContestResDto,
-} from '../../common/dto/contest';
-import {
-	DataForContestDto,
-	DataForContestResDto,
-} from '../../common/dto/contest/data';
-import {
+	DataContestDto,
+	NameDataContestResDto,
+	LogoDataContestResDto,
+	TaglineDataContestResDto,
 	QueryCreatorContestDto,
 	QueryCustomerContestDto,
 	QueryModeratorContestDto,
-} from '../../common/dto/contest/query';
+	ContestDto,
+	ContestsResDto,
+	ModeratorContestResDto,
+	CreatorContestsResDto,
+	CustomerContestsResDto,
+	CustomerContestByIdResDto,
+	CreatorContestByIdResDto,
+	ModeratorContestByIdResDto,
+	NameContestUpdateData,
+	TagLineContestUpdateDto,
+	LogoContestUpdateDto,
+} from '../../common/dto/contest';
 import {
-	ICharacteristicForDataContest,
+	ICharacteristicsDataContest,
 	ICreateBulkContest,
+	IQueryDataContest,
 } from '../../common/interfaces/contest';
-import { AppErrors } from '../../common/errors';
-import { IPagination } from '../../common/interfaces/middleware';
-import { parsBool } from '../../utils';
-import {
-	CONTEST_TYPE,
-	OPTIONS_GET_COUNT_ACTIVE_OFFERS,
-	OPTIONS_GET_ALL_CONTESTS,
-	OPTIONS_GET_ALL_CONTESTS_MODERATOR,
-	OPTIONS_GET_ONE_CONTEST,
-	OPTIONS_GET_COUNT_PENDING_OFFERS,
-} from '../../common/constants';
-import { UserId } from '../../decorators';
-import { FileService } from '../file/file.service';
 
 @Injectable()
 export class ContestService {
@@ -55,72 +54,46 @@ export class ContestService {
 		private readonly fileService: FileService,
 	) {}
 
-	public async getDataForContest(
-		query: DataForContestDto,
-	): Promise<DataForContestResDto> {
-		try {
-			const response: object = {};
-			const { characteristic1, characteristic2 }: DataForContestDto = query;
-			const types: string[] = [
-				characteristic1,
-				characteristic2,
-				'industry',
-			].filter(Boolean);
-			const characteristics: ICharacteristicForDataContest[] =
-				await this.prisma.selectBox.findMany({
-					where: {
-						type: {
-							in: types,
-						},
-					},
-					select: {
-						type: true,
-						describe: true,
-					},
-				});
-			if (!characteristics)
-				return Promise.reject(
-					new InternalServerErrorException(
-						AppErrors.CANNOT_GET_CONTEST_PREFERENCES,
-					),
-				);
-			characteristics.forEach(
-				(characteristic: ICharacteristicForDataContest): void => {
-					if (!response[characteristic.type]) {
-						response[characteristic.type] = [];
-					}
-					response[characteristic.type].push(characteristic.describe);
-				},
-			);
-			return response as DataForContestResDto;
-		} catch (e) {
-			throw new InternalServerErrorException(
-				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
-				{
-					cause: e,
-				},
-			);
-		}
+	public async getDataNameForContest(): Promise<NameDataContestResDto> {
+		const queryData: IQueryDataContest = {
+			characteristic1: 'nameStyle',
+			characteristic2: 'typeOfName',
+		};
+		return this.getDataForContest(queryData);
+	}
+
+	public async getDataTaglineForContest(): Promise<TaglineDataContestResDto> {
+		const queryData: IQueryDataContest = { characteristic1: 'typeOfTagline' };
+		return this.getDataForContest(queryData);
+	}
+
+	public async getDataLogoForContest(): Promise<LogoDataContestResDto> {
+		const queryData: IQueryDataContest = { characteristic1: 'brandStyle' };
+		return await this.getDataForContest(queryData);
 	}
 
 	public async getContestsForCustomer(
 		id: number,
 		query: QueryCustomerContestDto,
 		pagination: IPagination,
-	): Promise<ContestResDto> {
+	): Promise<CustomerContestsResDto> {
 		try {
-			const status: ContestStatus = query.status;
+			const status: ContestStatus[] =
+				query.status === ('all' as ContestStatus)
+					? [ContestStatus.active, ContestStatus.finished]
+					: [query.status];
 			const queryContest: Prisma.ContestFindManyArgs = {
-				where: { userId: id, status },
+				where: {
+					userId: id,
+					status: { in: status },
+				},
 				orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
 				select: {
-					...OPTIONS_GET_ALL_CONTESTS,
-					_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+					...ContestConstants.OPTIONS_GET_ALL_CONTESTS,
+					_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
 				},
 			};
-			const contests: { contests: Partial<Contest>[]; totalCount: number } =
-				await this.findManyContestsWidthQuery(queryContest, pagination);
-			return Object.assign({} as ContestResDto, contests);
+			return this.findManyContestsWidthQuery(queryContest, pagination);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -135,17 +108,28 @@ export class ContestService {
 		id: number,
 		query: QueryCreatorContestDto,
 		pagination: IPagination,
-	): Promise<ContestResDto> {
+	): Promise<CreatorContestsResDto> {
 		try {
-			const queryToPredicate: QueryCreatorContestDto =
-				new QueryCreatorContestDto(query);
-			const predicates: Prisma.ContestFindManyArgs =
-				this.createPredicatesAllContests(id, queryToPredicate);
+			const status: ContestStatus[] =
+				query.status === ('all' as ContestStatus)
+					? [ContestStatus.active, ContestStatus.finished]
+					: [query.status];
 			const queryContest: Prisma.ContestFindManyArgs = {
-				where: predicates.where,
-				orderBy: predicates.orderBy,
+				where: {
+					status: { in: status },
+					contestType: this.getContestTypes(query.typeIndex),
+					id: query.contestId ? +query.contestId : {},
+					industry:
+						query.industry === ('all' as Industry) ? {} : query.industry,
+					offers: parsBool(query.ownEntries) ? { some: { userId: id } } : {},
+				},
+				orderBy: [
+					{ price: query.awardSort as Prisma.SortOrder },
+					{ createdAt: 'desc' },
+					{ id: 'desc' },
+				],
 				select: {
-					...OPTIONS_GET_ALL_CONTESTS,
+					...ContestConstants.OPTIONS_GET_ALL_CONTESTS,
 					_count: {
 						select: {
 							offers: {
@@ -158,9 +142,7 @@ export class ContestService {
 					},
 				},
 			};
-			const contests: { contests: Partial<Contest>[]; totalCount: number } =
-				await this.findManyContestsWidthQuery(queryContest, pagination);
-			return Object.assign({} as ContestResDto, contests);
+			return this.findManyContestsWidthQuery(queryContest, pagination);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -174,23 +156,24 @@ export class ContestService {
 	public async getContestForModerator(
 		query: QueryModeratorContestDto,
 		pagination: IPagination,
-	): Promise<ContestModeratorResDto> {
+	): Promise<ModeratorContestResDto> {
 		try {
-			const queryToPredicate: QueryModeratorContestDto =
-				new QueryModeratorContestDto(query);
-			const predicates: Prisma.ContestFindManyArgs =
-				this.createPredicatesAllContests(null, queryToPredicate);
 			const queryContest: Prisma.ContestFindManyArgs = {
-				where: predicates.where,
-				orderBy: predicates.orderBy,
+				where: {
+					status: ContestStatus.active,
+					id: query.contestId ? +query.contestId : {},
+					industry:
+						query.industry === ('all' as Industry) ? {} : query.industry,
+					contestType: this.getContestTypes(query.typeIndex),
+					offers: { some: { status: OfferStatus.pending } },
+				},
+				orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
 				select: {
-					...OPTIONS_GET_ALL_CONTESTS_MODERATOR,
-					_count: { ...OPTIONS_GET_COUNT_PENDING_OFFERS },
+					...ContestConstants.OPTIONS_GET_ALL_CONTESTS_MODERATOR,
+					_count: { ...ContestConstants.OPTIONS_GET_COUNT_PENDING_OFFERS },
 				},
 			};
-			const contests: { contests: Partial<Contest>[]; totalCount: number } =
-				await this.findManyContestsWidthQuery(queryContest, pagination);
-			return Object.assign({} as ContestModeratorResDto, contests);
+			return this.findManyContestsWidthQuery(queryContest, pagination);
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -204,29 +187,31 @@ export class ContestService {
 	public async getContestByIdForCustomer(
 		@UserId() id: number,
 		contestId: number,
-	): Promise<ContestCustomerByIdResDto> {
+	): Promise<CustomerContestByIdResDto> {
 		const queryContest: Prisma.ContestFindFirstArgs = {
 			where: { id: contestId, userId: id },
 			select: {
-				...OPTIONS_GET_ONE_CONTEST,
-				_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+				...ContestConstants.OPTIONS_GET_ONE_CONTEST,
+				_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
 			},
 		};
-		const contest: Contest = await this.getContestById(queryContest);
+		const contest: CustomerContestByIdResDto = await this.getContestById(
+			queryContest,
+		);
 		if (!contest)
 			return Promise.reject(
 				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
 			);
-		return Object.assign({} as ContestCustomerByIdResDto, contest);
+		return contest;
 	}
 
 	public async getContestByIdForCreator(
 		contestId: number,
-	): Promise<ContestCreatorByIdResDto> {
+	): Promise<CreatorContestByIdResDto> {
 		const queryContest: Prisma.ContestFindFirstArgs = {
 			where: { id: contestId },
 			select: {
-				...OPTIONS_GET_ONE_CONTEST,
+				...ContestConstants.OPTIONS_GET_ONE_CONTEST,
 				user: {
 					select: {
 						firstName: true,
@@ -235,20 +220,22 @@ export class ContestService {
 						avatar: true,
 					},
 				},
-				_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+				_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
 			},
 		};
-		const contest: Contest = await this.getContestById(queryContest);
+		const contest: CreatorContestByIdResDto = await this.getContestById(
+			queryContest,
+		);
 		if (!contest)
 			return Promise.reject(
 				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
 			);
-		return Object.assign({} as ContestCreatorByIdResDto, contest);
+		return contest;
 	}
 
 	public async getContestByIdForModerator(
 		contestId: number,
-	): Promise<ContestModeratorByIdResDto> {
+	): Promise<ModeratorContestByIdResDto> {
 		const queryContest: Prisma.ContestFindFirstArgs = {
 			where: {
 				id: contestId,
@@ -256,17 +243,19 @@ export class ContestService {
 				offers: { some: { status: OfferStatus.pending } },
 			},
 			select: {
-				...OPTIONS_GET_ONE_CONTEST,
+				...ContestConstants.OPTIONS_GET_ONE_CONTEST,
 				price: false,
-				_count: { ...OPTIONS_GET_COUNT_PENDING_OFFERS },
+				_count: { ...ContestConstants.OPTIONS_GET_COUNT_PENDING_OFFERS },
 			},
 		};
-		const contest: Contest = await this.getContestById(queryContest);
+		const contest: ModeratorContestByIdResDto = await this.getContestById(
+			queryContest,
+		);
 		if (!contest)
 			return Promise.reject(
 				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
 			);
-		return Object.assign({} as ContestModeratorByIdResDto, contest);
+		return contest;
 	}
 
 	public async createContests(contests: ICreateBulkContest): Promise<number> {
@@ -290,36 +279,38 @@ export class ContestService {
 	}
 
 	public async updateContest(
-		dto: ContestUpdateDto,
+		contestId: number,
+		dto: NameContestUpdateData | LogoContestUpdateDto | TagLineContestUpdateDto,
 		userId: number,
-	): Promise<ContestCustomerByIdResDto> {
+	): Promise<CustomerContestByIdResDto> {
 		try {
-			const { contestId, deleteFileName, ...contestUpdateData } = dto;
+			const { deleteFileName, ...contestUpdateData } = dto;
 			const accessCheck: boolean = await this.checkAccessUpdateContest(
 				userId,
-				+contestId,
+				contestId,
 			);
+
 			if (!accessCheck)
 				return Promise.reject(
 					new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
 				);
-			delete contestUpdateData.file;
-			const updateContest: Partial<Contest> = await this.prisma.$transaction(
-				async (
-					prisma: Omit<PrismaClient, ITXClientDenyList>,
-				): Promise<Partial<Contest>> => {
-					return prisma.contest.update({
-						where: { id: +contestId },
-						data: contestUpdateData,
-						select: {
-							...OPTIONS_GET_ONE_CONTEST,
-							_count: { ...OPTIONS_GET_COUNT_ACTIVE_OFFERS },
-						},
-					});
-				},
-			);
+			const updateContest: CustomerContestByIdResDto =
+				await this.prisma.$transaction(
+					async (
+						prisma: Omit<PrismaClient, ITXClientDenyList>,
+					): Promise<CustomerContestByIdResDto> => {
+						return prisma.contest.update({
+							where: { id: contestId },
+							data: contestUpdateData,
+							select: {
+								...ContestConstants.OPTIONS_GET_ONE_CONTEST,
+								_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+							},
+						});
+					},
+				);
 			deleteFileName && this.fileService.removeFile(deleteFileName);
-			return Object.assign({} as ContestCustomerByIdResDto, updateContest);
+			return updateContest;
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -360,6 +351,9 @@ export class ContestService {
 			where: {
 				id: contestId,
 				userId: userId,
+				status: {
+					in: [ContestStatus.active, ContestStatus.pending],
+				},
 			},
 		});
 		return !!result;
@@ -368,67 +362,69 @@ export class ContestService {
 	private async findManyContestsWidthQuery(
 		queryContest: Prisma.ContestFindManyArgs,
 		pagination: IPagination,
-	): Promise<{ contests: Partial<Contest>[]; totalCount: number }> {
-		const [contests, totalCount]: [
-			contests: Partial<Contest>[],
-			totalCount: number,
-		] = await this.prisma.$transaction([
-			this.prisma.contest.findMany({
-				...queryContest,
-				...pagination,
-			}),
-			this.prisma.contest.count({ where: queryContest.where }),
-		]);
+	): Promise<ContestsResDto> {
+		const [contests, totalCount]: [contests: ContestDto[], totalCount: number] =
+			await this.prisma.$transaction([
+				this.prisma.contest.findMany({
+					...queryContest,
+					...pagination,
+				}),
+				this.prisma.contest.count({ where: queryContest.where }),
+			]);
 		return {
 			contests,
 			totalCount,
 		};
 	}
 
-	private createPredicatesAllContests(
-		id: number,
-		query: QueryCreatorContestDto | QueryModeratorContestDto,
-	): Prisma.ContestFindManyArgs {
-		const predicates: { where: object; orderBy: any[] } = {
-			where: {},
-			orderBy: [],
-		};
-		const statusDefault: ContestStatus[] = [
-			ContestStatus.finished,
-			ContestStatus.active,
-		];
-		query instanceof QueryModeratorContestDto &&
-			Object.assign(predicates.where, {
-				status: ContestStatus.active,
-				offers: { some: { status: OfferStatus.pending } },
-			});
-
-		if (query instanceof QueryCreatorContestDto) {
-			parsBool(query.status)
-				? Object.assign(predicates.where, { status: query.status })
-				: Object.assign(predicates.where, { status: { in: statusDefault } });
-			parsBool(query.ownEntries) &&
-				Object.assign(predicates.where, { offers: { some: { userId: id } } });
-			parsBool(query.awardSort) &&
-				predicates.orderBy.push({ price: query.awardSort });
-		}
-
-		parsBool(query.typeIndex) &&
-			Object.assign(predicates.where, {
-				contestType: this.getPredicateTypes(query.typeIndex),
-			});
-		parsBool(query.contestId) &&
-			!isNaN(parseInt(query.contestId)) &&
-			Object.assign(predicates.where, { id: +query.contestId });
-		parsBool(query.industry) &&
-			Object.assign(predicates.where, { industry: query.industry });
-
-		predicates.orderBy.push({ createdAt: 'desc' }, { id: 'desc' });
-
-		return predicates as Prisma.ContestFindManyArgs;
+	private getContestTypes(index: string): { in: ContestType[] } {
+		return { in: index.split(',') as ContestType[] };
 	}
 
-	private getPredicateTypes(index: string): { in: string[] } {
-		return { in: CONTEST_TYPE[index].split(',') };
+	private async getDataForContest(
+		query: IQueryDataContest,
+	): Promise<DataContestDto> {
+		try {
+			const response: DataContestDto = {
+				industry: [],
+			};
+			const types: string[] = [
+				query.characteristic1,
+				query.characteristic2,
+				'industry',
+			].filter(Boolean);
+			const characteristics: ICharacteristicsDataContest[] =
+				await this.prisma.selectBox.findMany({
+					where: {
+						type: {
+							in: types,
+						},
+					},
+					select: {
+						type: true,
+						describe: true,
+					},
+				});
+			if (!characteristics)
+				return Promise.reject(
+					new BadRequestException(AppErrors.CANNOT_GET_CONTEST_PREFERENCES),
+				);
+			characteristics.forEach(
+				(characteristic: ICharacteristicsDataContest): void => {
+					if (!response[characteristic.type]) {
+						response[characteristic.type] = [];
+					}
+					response[characteristic.type].push(characteristic.describe);
+				},
+			);
+			return response;
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
 	}
 }

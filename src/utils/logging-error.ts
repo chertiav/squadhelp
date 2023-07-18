@@ -3,12 +3,12 @@ import { join } from 'path';
 import * as fs from 'fs';
 
 import * as config from '../configuration/app';
-import { LOG_FILE } from '../common/constants';
+import { CommonConstants } from '../common/constants';
 
 export const loggingError = (objectError: ILoggerBody): void => {
 	const staticPath: string = config.default().staticPath;
-	const filePath: string = join(staticPath, LOG_FILE.logFilePath);
-	const fileNamePath: string = join(filePath, LOG_FILE.logFileName);
+	const filePath: string = join(staticPath, CommonConstants.LOG_FILE.PATH);
+	const fileNamePath: string = join(filePath, CommonConstants.LOG_FILE.NAME);
 	const jsonObjectError: string = JSON.stringify(objectError);
 
 	if (!fs.existsSync(filePath)) {

@@ -1,5 +1,6 @@
 import { join } from 'path';
-export default () => ({
+import { IConfiguration } from '../../common/interfaces/configuration/app';
+export default (): IConfiguration => ({
 	port: process.env.PORT,
 	secret: process.env.SECRET_JWT,
 	expireJwt: process.env.JWT_EXPIRE,

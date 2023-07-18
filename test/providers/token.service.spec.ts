@@ -8,8 +8,8 @@ import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AppModule } from '../../src/modules/app/app.module';
 import { userMockData } from '../mockData';
 import { JwtService } from '@nestjs/jwt';
-import { IJwtPayload } from '../../src/common/interfaces/auth';
 import { TokenService } from '../../src/modules/token/token.service';
+import { IJwtPayload } from '../../src/common/interfaces/auth';
 
 describe('Token Service', () => {
 	let app: INestApplication;

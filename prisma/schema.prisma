@@ -67,28 +67,73 @@ enum ContestStatus {
   finished
 }
 
+enum TypeOfName {
+  Company
+  Product
+  Project
+}
+
+enum StyleName {
+  Classic
+  Fun
+  Professional
+  Descriptive
+  Youthful
+  Any
+}
+
+enum TypeOfTagline {
+  Classic
+  Fun
+  Powerful
+  Descriptive
+  Modern
+  Any
+}
+
+enum Industry {
+  CreativeAgency @map("Creative Agency")
+  ConsultingFirm @map("Consulting Firm")
+  SkinCare       @map("Skin Care")
+  Biotech
+  Publisher
+  Education
+  Footwear
+  Medical
+  Builders
+}
+
+enum BrandStyle {
+  Tech
+  Fun
+  Fancy
+  Minimal
+  BrickMortar @map("Brick & Mortar")
+  PhotoBased  @map("Photo-based")
+}
+
 model Contest {
-  id               Int           @id @default(autoincrement())
-  contestType      ContestType   @map("contest_type")
-  fileName         String?       @map("file_name")
-  originalFileName String?       @map("original_file_name")
+  id               Int            @id @default(autoincrement())
+  contestType      ContestType    @map("contest_type")
+  fileName         String?        @map("file_name")
+  originalFileName String?        @map("original_file_name")
   title            String?
-  typeOfName       String?       @map("type_of_name")
-  industry         String?
-  focusOfWork      String?       @map("focus_of_work")
-  targetCustomer   String?       @map("target_customer")
-  styleName        String?       @map("style_name")
-  nameVenture      String?       @map("name_venture")
-  typeOfTagline    String?       @map("type_of_tagline")
-  status           ContestStatus @default(pending)
-  brandStyle       String?       @map("brand_style")
+  typeOfName       TypeOfName?    @map("type_of_name")
+  industry         Industry?
+  focusOfWork      String?        @map("focus_of_work")
+  targetCustomer   String?        @map("target_customer")
+  styleName        StyleName?     @map("style_name")
+  nameVenture      String?        @map("name_venture")
+  typeOfTagline    TypeOfTagline? @map("type_of_tagline")
+  status           ContestStatus  @default(pending)
+  brandStyle       BrandStyle?    @map("brand_style")
   price            Decimal
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
   priority         Int
-  orderId          String        @map("order_id")
-  user             User          @relation(fields: [userId], references: [id])
-  userId           Int           @map("user_id")
+  orderId          String         @map("order_id")
+  user             User           @relation(fields: [userId], references: [id])
+  userId           Int            @map("user_id")
   offers           Offer[]
 
   @@map("contests")

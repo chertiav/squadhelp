@@ -1,5 +1,5 @@
 import { CreateUserDto } from '../../src/common/dto/user';
-import { UserRolesEnum } from '../../src/common/enum/user';
+import { Role } from '@prisma/client';
 
 export const userMockData: CreateUserDto = {
 	firstName: 'Ragnar',
@@ -7,5 +7,5 @@ export const userMockData: CreateUserDto = {
 	displayName: 'ragnarek',
 	email: 'ragnar@gmail.com',
 	password: 'Ragnar123+',
-	role: UserRolesEnum.CUSTOMER,
+	role: Role.customer,
 };

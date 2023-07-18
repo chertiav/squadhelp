@@ -10,7 +10,7 @@ export function createDocument(app: INestApplication): OpenAPIObject {
 		.setVersion(ConfigSwagger.version)
 		.addCookieAuth('token', { type: 'apiKey' });
 
-	const options = builder.build();
+	const options: Omit<OpenAPIObject, 'paths'> = builder.build();
 
 	return SwaggerModule.createDocument(app, options);
 }
