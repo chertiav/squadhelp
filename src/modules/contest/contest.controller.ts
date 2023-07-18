@@ -3,6 +3,7 @@ import {
 	Controller,
 	Get,
 	Param,
+	ParseEnumPipe,
 	ParseIntPipe,
 	Patch,
 	Query,
@@ -21,6 +22,7 @@ import {
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
+	ApiParam,
 	ApiQuery,
 	ApiTags,
 	ApiUnauthorizedResponse,
@@ -60,14 +62,15 @@ import {
 	TagLineContestUpdateDto,
 	CustomerUpdateContestResDto,
 } from '../../common/dto/contest';
-import { Role } from '@prisma/client';
+import { ContestType, Role } from '@prisma/client';
+import { ContestConstants } from '../../common/constants';
 
 @ApiTags('contest')
 @Controller({ path: 'contest' })
 export class ContestController {
 	constructor(private readonly contestService: ContestService) {}
 
-	@ApiOperation({ description: 'Get data for create Name contest ' })
+	@ApiOperation({ description: 'Get data for create contest ' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
 		type: UnauthorizedExceptionResDto,
@@ -80,69 +83,46 @@ export class ContestController {
 		description: 'Invalid request data message',
 		type: BadRequestExceptionResDto,
 	})
+	@ApiExtraModels(
+		NameDataContestResDto,
+		LogoDataContestResDto,
+		TaglineDataContestResDto,
+	)
 	@ApiOkResponse({
 		description: 'Data for create Name contest',
-		type: NameDataContestResDto,
+		content: {
+			'application/json': {
+				examples: {
+					name: {
+						value: { ...ContestConstants.API_OK_RESPONSE_EXAMPLES_NAME },
+					},
+					logo: {
+						value: { ...ContestConstants.API_OK_RESPONSE_EXAMPLES_LOGO },
+					},
+					tagline: {
+						value: { ...ContestConstants.API_OK_RESPONSE_EXAMPLES_TAG_LINE },
+					},
+				},
+			},
+		},
+	})
+	@ApiParam({
+		name: 'contestType',
+		description: 'The name of the type of competition to receive data',
+		enum: ContestType,
 	})
 	@ApiCookieAuth()
 	@UseGuards(JWTAuthGuard)
 	@Roles(Role.customer)
 	@Version('1')
-	@Get('cu/start/name')
-	async dataNameForContest(): Promise<NameDataContestResDto> {
-		return this.contestService.getDataNameForContest();
-	}
-
-	@ApiOperation({ description: 'Get data for create Logo contest ' })
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiInternalServerErrorResponse({
-		description: 'Internal server error message',
-		type: InternalServerErrorExceptionResDto,
-	})
-	@ApiBadRequestResponse({
-		description: 'Invalid request data message',
-		type: BadRequestExceptionResDto,
-	})
-	@ApiOkResponse({
-		description: 'Data for create Logo contest',
-		type: LogoDataContestResDto,
-	})
-	@ApiCookieAuth()
-	@UseGuards(JWTAuthGuard)
-	@Roles(Role.customer)
-	@Version('1')
-	@Get('cu/start/logo')
-	async dataLogoForContest(): Promise<LogoDataContestResDto> {
-		return this.contestService.getDataLogoForContest();
-	}
-
-	@ApiOperation({ description: 'Get data for create Tagline contest ' })
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiInternalServerErrorResponse({
-		description: 'Internal server error message',
-		type: InternalServerErrorExceptionResDto,
-	})
-	@ApiBadRequestResponse({
-		description: 'Invalid request data message',
-		type: BadRequestExceptionResDto,
-	})
-	@ApiOkResponse({
-		description: 'Data for create Tagline contest',
-		type: TaglineDataContestResDto,
-	})
-	@ApiCookieAuth()
-	@UseGuards(JWTAuthGuard)
-	@Roles(Role.customer)
-	@Version('1')
-	@Get('cu/start/tagline')
-	async dataTaglineForContest(): Promise<TaglineDataContestResDto> {
-		return this.contestService.getDataTaglineForContest();
+	@Get('start/:contestType')
+	async dataNewContest(
+		@Param('contestType', new ParseEnumPipe(ContestType))
+		contestType: ContestType,
+	): Promise<
+		NameDataContestResDto | LogoDataContestResDto | TaglineDataContestResDto
+	> {
+		return this.contestService.getDataNewContest(contestType);
 	}
 
 	@ApiOperation({ description: 'Get customer contest' })
