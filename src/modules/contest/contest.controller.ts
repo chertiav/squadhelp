@@ -9,12 +9,14 @@ import {
 	UploadedFile,
 	UseGuards,
 	UseInterceptors,
+	Version,
 } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiBody,
 	ApiConsumes,
 	ApiCookieAuth,
+	ApiExtraModels,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
@@ -22,111 +24,169 @@ import {
 	ApiQuery,
 	ApiTags,
 	ApiUnauthorizedResponse,
+	refs,
 } from '@nestjs/swagger';
 
 import { ContestService } from './contest.service';
 import { JWTAuthGuard } from '../../guards';
 import {
-	BadRequestExceptionRes,
-	ForbiddenExceptionRes,
-	InternalServerErrorExceptionRes,
-	UnauthorizedExceptionRes,
-} from '../../common/types/response/exception';
-import {
-	ContestCreatorByIdResDto,
-	ContestCustomerByIdResDto,
-	ContestModeratorByIdResDto,
-	ContestModeratorResDto,
-	ContestResDto,
-} from '../../common/dto/contest';
+	BadRequestExceptionResDto,
+	ForbiddenExceptionResDto,
+	InternalServerErrorExceptionResDto,
+	UnauthorizedExceptionResDto,
+} from '../../common/dto/exception';
 import { Paginate, Roles, UserId } from '../../decorators';
-import { UserRolesEnum } from '../../common/enum/user';
-import { RolesGuard } from '../../guards/roles.guard';
-import { IPagination } from '../../common/interfaces/middleware';
-import {
-	DataForContestDto,
-	DataForContestResDto,
-} from '../../common/dto/contest/data';
-import {
-	QueryCreatorContestDto,
-	QueryCustomerContestDto,
-	QueryModeratorContestDto,
-} from '../../common/dto/contest/query';
+import { RolesGuard } from '../../guards';
+import { IPagination } from '../../common/interfaces/pagination';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { fileStorage } from '../file/file.storage';
 import { UpdateFileInterceptor } from '../../interceptors';
 import { AppMessages } from '../../common/messages';
-import { ContestUpdateDto } from '../../common/dto/contest/contest-update.dto';
-import { ContestUpdateResDto } from '../../common/dto/contest/contest-update.res.dto';
+import {
+	LogoDataContestResDto,
+	NameDataContestResDto,
+	TaglineDataContestResDto,
+	QueryCreatorContestDto,
+	QueryCustomerContestDto,
+	QueryModeratorContestDto,
+	CreatorContestsResDto,
+	CustomerContestsResDto,
+	ModeratorContestResDto,
+	CustomerContestByIdResDto,
+	CreatorContestByIdResDto,
+	ModeratorContestByIdResDto,
+	NameContestUpdateData,
+	LogoContestUpdateDto,
+	TagLineContestUpdateDto,
+	CustomerUpdateContestResDto,
+} from '../../common/dto/contest';
+import { Role } from '@prisma/client';
 
 @ApiTags('contest')
-@Controller('contest')
+@Controller({ path: 'contest' })
 export class ContestController {
 	constructor(private readonly contestService: ContestService) {}
 
-	@ApiOperation({ description: 'Get data for contest' })
+	@ApiOperation({ description: 'Get data for create Name contest ' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid request data message',
+		type: BadRequestExceptionResDto,
 	})
 	@ApiOkResponse({
-		description: 'Data for contest',
-		type: DataForContestResDto,
+		description: 'Data for create Name contest',
+		type: NameDataContestResDto,
 	})
 	@ApiCookieAuth()
 	@UseGuards(JWTAuthGuard)
-	@Get('data')
-	async dataForContest(
-		@Query() query: DataForContestDto,
-	): Promise<DataForContestResDto> {
-		return this.contestService.getDataForContest(query);
+	@Roles(Role.customer)
+	@Version('1')
+	@Get('cu/start/name')
+	async dataNameForContest(): Promise<NameDataContestResDto> {
+		return this.contestService.getDataNameForContest();
+	}
+
+	@ApiOperation({ description: 'Get data for create Logo contest ' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionResDto,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionResDto,
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid request data message',
+		type: BadRequestExceptionResDto,
+	})
+	@ApiOkResponse({
+		description: 'Data for create Logo contest',
+		type: LogoDataContestResDto,
+	})
+	@ApiCookieAuth()
+	@UseGuards(JWTAuthGuard)
+	@Roles(Role.customer)
+	@Version('1')
+	@Get('cu/start/logo')
+	async dataLogoForContest(): Promise<LogoDataContestResDto> {
+		return this.contestService.getDataLogoForContest();
+	}
+
+	@ApiOperation({ description: 'Get data for create Tagline contest ' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionResDto,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionResDto,
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid request data message',
+		type: BadRequestExceptionResDto,
+	})
+	@ApiOkResponse({
+		description: 'Data for create Tagline contest',
+		type: TaglineDataContestResDto,
+	})
+	@ApiCookieAuth()
+	@UseGuards(JWTAuthGuard)
+	@Roles(Role.customer)
+	@Version('1')
+	@Get('cu/start/tagline')
+	async dataTaglineForContest(): Promise<TaglineDataContestResDto> {
+		return this.contestService.getDataTaglineForContest();
 	}
 
 	@ApiOperation({ description: 'Get customer contest' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'Customer contests data',
-		type: ContestResDto,
+		type: CustomerContestsResDto,
 	})
 	@ApiQuery({
 		description: 'Query parameters',
 		type: QueryCustomerContestDto,
 	})
 	@ApiCookieAuth()
-	@Roles(UserRolesEnum.CUSTOMER)
+	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
-	@Get('for-customer')
+	@Version('1')
+	@Get('cu')
 	async contestsForCustomer(
 		@UserId() id: number,
 		@Paginate() pagination: IPagination,
 		@Query() query,
-	): Promise<ContestResDto> {
+	): Promise<CustomerContestsResDto> {
 		return this.contestService.getContestsForCustomer(id, query, pagination);
 	}
 
 	@ApiOperation({ description: 'Get all contests for creative' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiForbiddenResponse({
 		description: 'Access denied message',
-		type: ForbiddenExceptionRes,
+		type: ForbiddenExceptionResDto,
 	})
 	@ApiQuery({
 		description: 'Query parameters',
@@ -134,32 +194,33 @@ export class ContestController {
 	})
 	@ApiOkResponse({
 		description: 'Customer contests data',
-		type: ContestResDto,
+		type: CreatorContestsResDto,
 	})
-	@Roles(UserRolesEnum.CREATOR)
+	@Roles(Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('for-creator')
+	@Version('1')
+	@Get('cr')
 	async contestForCreative(
 		@UserId() id: number,
 		@Paginate() pagination: IPagination,
 		@Query() query,
-	): Promise<ContestResDto> {
+	): Promise<CreatorContestsResDto> {
 		return this.contestService.getContestForCreative(id, query, pagination);
 	}
 
 	@ApiOperation({ description: 'Get contests for moderator' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiForbiddenResponse({
 		description: 'Access denied message',
-		type: ForbiddenExceptionRes,
+		type: ForbiddenExceptionResDto,
 	})
 	@ApiQuery({
 		description: 'Query parameters',
@@ -167,138 +228,156 @@ export class ContestController {
 	})
 	@ApiOkResponse({
 		description: 'Contests data for moderator',
-		type: ContestModeratorResDto,
+		type: ModeratorContestResDto,
 	})
-	@Roles(UserRolesEnum.MODERATOR)
+	@Roles(Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('for-moderator')
+	@Version('1')
+	@Get('mo')
 	async contestsForModerator(
 		@Paginate() pagination: IPagination,
 		@Query() query,
-	): Promise<ContestModeratorResDto> {
+	): Promise<ModeratorContestResDto> {
 		return this.contestService.getContestForModerator(query, pagination);
 	}
 
 	@ApiOperation({ description: 'Get contest for customer by id' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiForbiddenResponse({
 		description: 'Access denied message',
-		type: ForbiddenExceptionRes,
+		type: ForbiddenExceptionResDto,
 	})
 	@ApiBadRequestResponse({
 		description: 'Invalid request data message',
-		type: BadRequestExceptionRes,
+		type: BadRequestExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'Contests data for moderator',
-		type: ContestCustomerByIdResDto,
+		type: CustomerContestByIdResDto,
 	})
-	@Roles(UserRolesEnum.CUSTOMER)
+	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('for-customer/:contestId')
+	@Version('1')
+	@Get('cu/:contestId')
 	async contestForCustomerById(
 		@UserId() id: number,
 		@Param('contestId', ParseIntPipe) contestId: number,
-	): Promise<ContestCustomerByIdResDto> {
+	): Promise<CustomerContestByIdResDto> {
 		return this.contestService.getContestByIdForCustomer(id, contestId);
 	}
 
 	@ApiOperation({ description: 'Get contest for creator by id' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiForbiddenResponse({
 		description: 'Access denied message',
-		type: ForbiddenExceptionRes,
+		type: ForbiddenExceptionResDto,
 	})
 	@ApiBadRequestResponse({
 		description: 'Invalid request data message',
-		type: BadRequestExceptionRes,
+		type: BadRequestExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'Contests data for moderator',
-		type: ContestCreatorByIdResDto,
+		type: CreatorContestByIdResDto,
 	})
-	@Roles(UserRolesEnum.CREATOR)
+	@Roles(Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('for-creator/:contestId')
+	@Version('1')
+	@Get('cr/:contestId')
 	async contestForCreatorById(
 		@Param('contestId', ParseIntPipe) contestId: number,
-	): Promise<ContestCreatorByIdResDto> {
+	): Promise<CreatorContestByIdResDto> {
 		return this.contestService.getContestByIdForCreator(contestId);
 	}
 
 	@ApiOperation({ description: 'Get contest for moderator by id' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiForbiddenResponse({
 		description: 'Access denied message',
-		type: ForbiddenExceptionRes,
+		type: ForbiddenExceptionResDto,
 	})
 	@ApiBadRequestResponse({
 		description: 'Invalid request data message',
-		type: BadRequestExceptionRes,
+		type: BadRequestExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'Contests data for moderator',
-		type: ContestModeratorByIdResDto,
+		type: ModeratorContestByIdResDto,
 	})
-	@Roles(UserRolesEnum.MODERATOR)
+	@Roles(Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Get('for-moderator/:contestId')
+	@Version('1')
+	@Get('mo/:contestId')
 	async contestForModeratorById(
 		@Param('contestId', ParseIntPipe) contestId: number,
-	): Promise<ContestModeratorByIdResDto> {
+	): Promise<ModeratorContestByIdResDto> {
 		return this.contestService.getContestByIdForModerator(contestId);
 	}
 
 	@ApiOperation({ description: 'Update contest' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiForbiddenResponse({
 		description: 'Access denied message',
-		type: ForbiddenExceptionRes,
+		type: ForbiddenExceptionResDto,
 	})
 	@ApiBadRequestResponse({
 		description: 'Invalid request data message',
-		type: BadRequestExceptionRes,
+		type: BadRequestExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'Data with updated competition conditions',
-		type: ContestUpdateResDto,
+		type: CustomerUpdateContestResDto,
 	})
 	@ApiConsumes('multipart/form-data')
+	@ApiExtraModels(
+		NameContestUpdateData,
+		LogoContestUpdateDto,
+		TagLineContestUpdateDto,
+	)
 	@ApiBody({
-		description: 'Contest data for update',
-		type: ContestUpdateDto,
+		description:
+			'Contest data for update, using three different schemes - ' +
+			'NameContestUpdateData, LogoContestUpdateDto, TagLineContestUpdateDto',
+		type: NameContestUpdateData,
+		schema: {
+			oneOf: refs(
+				NameContestUpdateData,
+				LogoContestUpdateDto,
+				TagLineContestUpdateDto,
+			),
+		},
 	})
 	@UseInterceptors(
 		FileInterceptor('file', {
@@ -306,16 +385,20 @@ export class ContestController {
 		}),
 		UpdateFileInterceptor,
 	)
-	@Roles(UserRolesEnum.CUSTOMER)
+	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
-	@Patch('update')
+	@Version('1')
+	@Patch('cu/update/:contestId')
 	async contestUpdate(
 		@UserId() userId: number,
+		@Param('contestId', ParseIntPipe) contestId: number,
 		@UploadedFile() file: Express.Multer.File,
-		@Body() dto: ContestUpdateDto,
-	): Promise<ContestUpdateResDto> {
-		const contest: any = await this.contestService.updateContest(dto, userId);
+		@Body()
+		dto: NameContestUpdateData | LogoContestUpdateDto | TagLineContestUpdateDto,
+	): Promise<CustomerUpdateContestResDto> {
+		const contest: CustomerContestByIdResDto =
+			await this.contestService.updateContest(contestId, dto, userId);
 		return { contest, message: AppMessages.MSG_CONTEST_INFORMATION_UPDATED };
 	}
 }

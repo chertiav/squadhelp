@@ -1,4 +1,4 @@
-import { ISwaggerConfig } from '../../common/interfaces/swagger';
+import { ISwaggerConfig } from '../../common/interfaces/configuration/swagger';
 
 export const ConfigSwagger: ISwaggerConfig = {
 	title: 'Squadhelp api',

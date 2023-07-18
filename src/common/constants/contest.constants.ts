@@ -1,55 +1,57 @@
-import { OfferStatus } from '@prisma/client';
+import { ContestStatus, Industry, OfferStatus } from '@prisma/client';
+import {
+	IOptionsApiPropertyDadaContest,
+	IOptionsGetAllContests,
+	IOptionsGetAllContestsModerator,
+	IOptionsGetCountActiveOffers,
+	IOptionsGetCountPendingOffers,
+	IOptionsGetOneContest,
+} from '../interfaces/constants';
 
-export const OPTIONS_FOR_API_PROPERTY = {
-	DATA_FOR_CONTEST: {
-		COMMON_PROPERTY: {
-			description: 'Type of contest',
-			type: 'array',
-			items: {
-				type: 'string',
-			},
+//Data contest
+export const INDUSTRY_API_PROPERTY_DATA_CONTEST: string[] = [
+	'Creative Agency',
+	'Consulting Firm',
+	'Skin care',
+	'Biotech',
+	'Publisher',
+	'Education',
+	'Footwear',
+	'Medical',
+	'Builders',
+];
+
+export const BRAND_STYLE_API_PROPERTY_DATA_CONTEST: string[] = [
+	'Tech',
+	'Fun',
+	'Fancy',
+	'Minimal',
+	'Brick & Mortar',
+	'Photo-based',
+];
+
+export const OPTIONS_API_PROPERTY_DATA_CONTEST: IOptionsApiPropertyDadaContest =
+	{
+		type: 'array',
+		items: {
+			type: 'string',
 		},
-		EXAMPLE_TYPE_OF_NAME: ['Company', 'Product', 'Project'],
-		EXAMPLE_NAME_STYLE: [
-			'Classic',
-			'Fun',
-			'Professional',
-			'Descriptive',
-			'Youthful',
-			'Any',
-		],
-		EXAMPLE_TYPE_OF_TAGLINE: [
-			'Classic',
-			'Fun',
-			'Powerful',
-			'Descriptive',
-			'Modern',
-			'Any',
-		],
-		EXAMPLE_INDUSTRY: [
-			'Creative Agency',
-			'Consulting Firm',
-			'Skin care',
-			'Biotech',
-			'Publisher',
-			'Education',
-			'Footwear',
-			'Medical',
-			'Builders',
-		],
-		EXAMPLE_BRAND_STYLE: [
-			'Techy',
-			'Fun',
-			'Fancy',
-			'Minimal',
-			'Brick & Mortar',
-			'Photo-based',
-		],
-	},
-};
+	};
+
+// get All contests
+
+export const CONTEST_STATUS: ContestStatus[] = [
+	'all' as ContestStatus,
+	ContestStatus.active,
+	ContestStatus.finished,
+];
+
+export const CREATOR_QUERY_CONTEST_INDUSTRY: Industry[] = [
+	'all' as Industry,
+	...Object.values(Industry),
+];
 
 export const CONTEST_TYPE: string[] = [
-	'',
 	'name,tagline,logo',
 	'name',
 	'tagline',
@@ -58,22 +60,26 @@ export const CONTEST_TYPE: string[] = [
 	'logo,tagline',
 	'name,logo',
 ];
-export const OPTIONS_GET_ALL_CONTESTS_MODERATOR = {
-	id: true,
-	title: true,
-	contestType: true,
-	typeOfName: true,
-	createdAt: true,
-};
 
-export const OPTIONS_GET_ALL_CONTESTS = {
+export const OPTIONS_GET_ALL_CONTESTS_MODERATOR: IOptionsGetAllContestsModerator =
+	{
+		id: true,
+		title: true,
+		contestType: true,
+		typeOfName: true,
+		brandStyle: true,
+		typeOfTagline: true,
+	};
+
+export const OPTIONS_GET_ALL_CONTESTS: IOptionsGetAllContests = {
 	...OPTIONS_GET_ALL_CONTESTS_MODERATOR,
-	brandStyle: true,
-	typeOfTagline: true,
+	createdAt: true,
 	price: true,
 };
 
-export const OPTIONS_GET_ONE_CONTEST = {
+// get one contests
+
+export const OPTIONS_GET_ONE_CONTEST: IOptionsGetOneContest = {
 	...OPTIONS_GET_ALL_CONTESTS,
 	fileName: true,
 	originalFileName: true,
@@ -84,7 +90,7 @@ export const OPTIONS_GET_ONE_CONTEST = {
 	targetCustomer: true,
 };
 
-export const OPTIONS_GET_COUNT_ACTIVE_OFFERS = {
+export const OPTIONS_GET_COUNT_ACTIVE_OFFERS: IOptionsGetCountActiveOffers = {
 	select: {
 		offers: {
 			where: {
@@ -94,7 +100,7 @@ export const OPTIONS_GET_COUNT_ACTIVE_OFFERS = {
 	},
 };
 
-export const OPTIONS_GET_COUNT_PENDING_OFFERS = {
+export const OPTIONS_GET_COUNT_PENDING_OFFERS: IOptionsGetCountPendingOffers = {
 	select: {
 		offers: {
 			where: {

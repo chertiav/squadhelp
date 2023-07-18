@@ -8,6 +8,7 @@ import {
 	UploadedFile,
 	UseGuards,
 	UseInterceptors,
+	Version,
 } from '@nestjs/common';
 import {
 	ApiBody,
@@ -21,18 +22,21 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-import { InfoUserRes, UpdateUserRes } from '../../common/types/response/user';
 import { AppMessages } from '../../common/messages';
 import { imageStorage } from '../file/file.storage';
 import { UserId } from '../../decorators';
 import {
-	InternalServerErrorExceptionRes,
-	UnauthorizedExceptionRes,
-} from '../../common/types/response/exception';
+	InternalServerErrorExceptionResDto,
+	UnauthorizedExceptionResDto,
+} from '../../common/dto/exception';
 import { JWTAuthGuard } from '../../guards';
 import { UserService } from './user.service';
 import { UpdateFileInterceptor } from '../../interceptors';
-import { InfoUserDto, UpdateUserDto } from '../../common/dto/user';
+import {
+	InfoUserDto,
+	UpdateUserDto,
+	UpdateUserResDto,
+} from '../../common/dto/user';
 
 @ApiTags('user')
 @Controller('user')
@@ -47,15 +51,15 @@ export class UserController {
 	})
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'User data updated successfully',
-		type: UpdateUserRes,
+		type: UpdateUserResDto,
 	})
 	@ApiCookieAuth()
 	@UseGuards(JWTAuthGuard)
@@ -66,12 +70,13 @@ export class UserController {
 		}),
 		UpdateFileInterceptor,
 	)
+	@Version('1')
 	@Patch('update')
 	async update(
 		@UserId() id: number,
 		@UploadedFile() file: Express.Multer.File,
 		@Body() dto: UpdateUserDto,
-	): Promise<UpdateUserRes> {
+	): Promise<UpdateUserResDto> {
 		const user: InfoUserDto = await this.userService.updateUser(dto, id);
 		return { user, message: AppMessages.MSG_USER_INFORMATION_UPDATED };
 	}
@@ -79,21 +84,22 @@ export class UserController {
 	@ApiOperation({ description: 'Get user info' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
-		type: UnauthorizedExceptionRes,
+		type: UnauthorizedExceptionResDto,
 	})
 	@ApiInternalServerErrorResponse({
 		description: 'Internal server error message',
-		type: InternalServerErrorExceptionRes,
+		type: InternalServerErrorExceptionResDto,
 	})
 	@ApiOkResponse({
 		description: 'User info data ',
-		type: InfoUserRes,
+		type: InfoUserDto,
 	})
 	@ApiCookieAuth()
 	@UseGuards(JWTAuthGuard)
 	@HttpCode(HttpStatus.OK)
+	@Version('1')
 	@Get('info')
-	async info(@UserId() id: number): Promise<InfoUserRes> {
+	async info(@UserId() id: number): Promise<InfoUserDto> {
 		return this.userService.getInfoUser(id);
 	}
 }

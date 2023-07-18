@@ -4,7 +4,7 @@ import { join } from 'path';
 import * as fs from 'fs';
 
 import * as config from '../../configuration/app';
-import { LOG_FILE } from '../../common/constants';
+import { CommonConstants } from '../../common/constants';
 
 @Injectable()
 export class TasksService {
@@ -16,11 +16,14 @@ export class TasksService {
 	})
 	loggingErrorToFile(): void {
 		const staticPath: string = config.default().staticPath;
-		const logFilePath: string = join(staticPath, LOG_FILE.logFilePath);
-		const logFileNamePath: string = join(logFilePath, LOG_FILE.logFileName);
+		const logFilePath: string = join(staticPath, CommonConstants.LOG_FILE.PATH);
+		const logFileNamePath: string = join(
+			logFilePath,
+			CommonConstants.LOG_FILE.NAME,
+		);
 		const logFilePathCurrentDay: string = join(
 			logFilePath,
-			LOG_FILE.logFilePathCurrentDay,
+			CommonConstants.LOG_FILE.CURRENT_PATH,
 		);
 
 		if (!fs.existsSync(logFilePathCurrentDay)) {
