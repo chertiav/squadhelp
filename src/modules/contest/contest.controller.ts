@@ -200,7 +200,7 @@ export class ContestController {
 	@ApiCookieAuth()
 	@Roles(Role.customer, Role.creator, Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
-	@Version('2')
+	@Version('1')
 	@Get()
 	async contests(
 		@UserId() id: number,
@@ -217,7 +217,7 @@ export class ContestController {
 		return this.contestService.getContests(id, role, query, pagination);
 	}
 
-	@ApiOperation({ description: 'Get contest for customer by id' })
+	@ApiOperation({ description: 'Get contest by id' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
 		type: UnauthorizedExceptionResDto,
@@ -234,84 +234,54 @@ export class ContestController {
 		description: 'Invalid request data message',
 		type: BadRequestExceptionResDto,
 	})
+	@ApiExtraModels(
+		CustomerContestByIdResDto,
+		CreatorContestByIdResDto,
+		ModeratorContestByIdResDto,
+	)
 	@ApiOkResponse({
-		description: 'Contests data for moderator',
-		type: CustomerContestByIdResDto,
+		description: 'Contest data by id',
+		content: {
+			'application/json': {
+				schema: {
+					oneOf: refs(
+						CustomerContestByIdResDto,
+						CreatorContestByIdResDto,
+						ModeratorContestByIdResDto,
+					),
+				},
+				examples: {
+					customer: {
+						value:
+							ContestConstants.API_OK_RESPONSE_EXAMPLES_GET_CONTEST_BY_ID_CUSTOMER,
+					},
+					creator: {
+						value:
+							ContestConstants.API_OK_RESPONSE_EXAMPLES_GET_CONTEST_BY_ID_CREATOR,
+					},
+					moderator: {
+						value:
+							ContestConstants.API_OK_RESPONSE_EXAMPLES_GET_CONTEST_BY_ID_MODERATOR,
+					},
+				},
+			},
+		},
 	})
-	@Roles(Role.customer)
+	@Roles(Role.creator, Role.moderator, Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
 	@Version('1')
-	@Get('cu/:contestId')
-	async contestForCustomerById(
+	@Get(':contestId')
+	async contestById(
 		@UserId() id: number,
+		@UserRole() role: Role,
 		@Param('contestId', ParseIntPipe) contestId: number,
-	): Promise<CustomerContestByIdResDto> {
-		return this.contestService.getContestByIdForCustomer(id, contestId);
-	}
-
-	@ApiOperation({ description: 'Get contest for creator by id' })
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiInternalServerErrorResponse({
-		description: 'Internal server error message',
-		type: InternalServerErrorExceptionResDto,
-	})
-	@ApiForbiddenResponse({
-		description: 'Access denied message',
-		type: ForbiddenExceptionResDto,
-	})
-	@ApiBadRequestResponse({
-		description: 'Invalid request data message',
-		type: BadRequestExceptionResDto,
-	})
-	@ApiOkResponse({
-		description: 'Contests data for moderator',
-		type: CreatorContestByIdResDto,
-	})
-	@Roles(Role.creator)
-	@UseGuards(JWTAuthGuard, RolesGuard)
-	@ApiCookieAuth()
-	@Version('1')
-	@Get('cr/:contestId')
-	async contestForCreatorById(
-		@Param('contestId', ParseIntPipe) contestId: number,
-	): Promise<CreatorContestByIdResDto> {
-		return this.contestService.getContestByIdForCreator(contestId);
-	}
-
-	@ApiOperation({ description: 'Get contest for moderator by id' })
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiInternalServerErrorResponse({
-		description: 'Internal server error message',
-		type: InternalServerErrorExceptionResDto,
-	})
-	@ApiForbiddenResponse({
-		description: 'Access denied message',
-		type: ForbiddenExceptionResDto,
-	})
-	@ApiBadRequestResponse({
-		description: 'Invalid request data message',
-		type: BadRequestExceptionResDto,
-	})
-	@ApiOkResponse({
-		description: 'Contests data for moderator',
-		type: ModeratorContestByIdResDto,
-	})
-	@Roles(Role.moderator)
-	@UseGuards(JWTAuthGuard, RolesGuard)
-	@ApiCookieAuth()
-	@Version('1')
-	@Get('mo/:contestId')
-	async contestForModeratorById(
-		@Param('contestId', ParseIntPipe) contestId: number,
-	): Promise<ModeratorContestByIdResDto> {
-		return this.contestService.getContestByIdForModerator(contestId);
+	): Promise<
+		| CustomerContestByIdResDto
+		| CreatorContestByIdResDto
+		| ModeratorContestByIdResDto
+	> {
+		return this.contestService.getContestById(id, role, contestId);
 	}
 
 	@ApiOperation({ description: 'Update contest' })
@@ -364,7 +334,7 @@ export class ContestController {
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@ApiCookieAuth()
 	@Version('1')
-	@Patch('cu/update/:contestId')
+	@Patch('update/:contestId')
 	async contestUpdate(
 		@UserId() userId: number,
 		@Param('contestId', ParseIntPipe) contestId: number,
