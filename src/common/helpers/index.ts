@@ -103,3 +103,57 @@ export const createPredicatesAllContests = (
 	predicates.orderBy.push({ createdAt: 'desc' }, { id: 'desc' });
 	return predicates;
 };
+
+export const createPredicatesOneContest = (
+	id: number,
+	role: Role,
+	contestId: number,
+): Prisma.ContestFindFirstArgs => {
+	switch (role) {
+		case Role.customer: {
+			return {
+				where: { id: contestId, userId: id },
+				select: {
+					...ContestConstants.OPTIONS_GET_ONE_CONTEST,
+					_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+				},
+			};
+		}
+		case Role.creator: {
+			return {
+				where: {
+					id: contestId,
+					status: {
+						not: ContestStatus.pending,
+					},
+				},
+				select: {
+					...ContestConstants.OPTIONS_GET_ONE_CONTEST,
+					user: {
+						select: {
+							firstName: true,
+							lastName: true,
+							displayName: true,
+							avatar: true,
+						},
+					},
+					_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
+				},
+			};
+		}
+		case Role.moderator: {
+			return {
+				where: {
+					id: contestId,
+					status: ContestStatus.active,
+					offers: { some: { status: OfferStatus.pending } },
+				},
+				select: {
+					...ContestConstants.OPTIONS_GET_ONE_CONTEST,
+					price: false,
+					_count: { ...ContestConstants.OPTIONS_GET_COUNT_PENDING_OFFERS },
+				},
+			};
+		}
+	}
+};

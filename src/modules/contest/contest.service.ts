@@ -7,7 +7,6 @@ import {
 	Contest,
 	ContestStatus,
 	ContestType,
-	OfferStatus,
 	Prisma,
 	PrismaClient,
 	Role,
@@ -18,7 +17,6 @@ import { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { AppErrors } from '../../common/errors';
 import { IPagination } from '../../common/interfaces/pagination';
 import { ContestConstants } from '../../common/constants';
-import { UserId } from '../../decorators';
 import { FileService } from '../file/file.service';
 import {
 	ContestDto,
@@ -44,7 +42,10 @@ import {
 	ICreateBulkContest,
 	IQueryDataContest,
 } from '../../common/interfaces/contest';
-import { createPredicatesAllContests } from '../../common/helpers';
+import {
+	createPredicatesAllContests,
+	createPredicatesOneContest,
+} from '../../common/helpers';
 
 @Injectable()
 export class ContestService {
@@ -117,71 +118,21 @@ export class ContestService {
 		}
 	}
 
-	public async getContestByIdForCustomer(
-		@UserId() id: number,
+	public async getContestById(
+		id: number,
+		role: Role,
 		contestId: number,
-	): Promise<CustomerContestByIdResDto> {
-		const queryContest: Prisma.ContestFindFirstArgs = {
-			where: { id: contestId, userId: id },
-			select: {
-				...ContestConstants.OPTIONS_GET_ONE_CONTEST,
-				_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
-			},
-		};
-		const contest: CustomerContestByIdResDto = await this.getContestById(
-			queryContest,
-		);
-		if (!contest)
-			return Promise.reject(
-				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
-			);
-		return contest;
-	}
-
-	public async getContestByIdForCreator(
-		contestId: number,
-	): Promise<CreatorContestByIdResDto> {
-		const queryContest: Prisma.ContestFindFirstArgs = {
-			where: { id: contestId },
-			select: {
-				...ContestConstants.OPTIONS_GET_ONE_CONTEST,
-				user: {
-					select: {
-						firstName: true,
-						lastName: true,
-						displayName: true,
-						avatar: true,
-					},
-				},
-				_count: { ...ContestConstants.OPTIONS_GET_COUNT_ACTIVE_OFFERS },
-			},
-		};
-		const contest: CreatorContestByIdResDto = await this.getContestById(
-			queryContest,
-		);
-		if (!contest)
-			return Promise.reject(
-				new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
-			);
-		return contest;
-	}
-
-	public async getContestByIdForModerator(
-		contestId: number,
-	): Promise<ModeratorContestByIdResDto> {
-		const queryContest: Prisma.ContestFindFirstArgs = {
-			where: {
-				id: contestId,
-				status: ContestStatus.active,
-				offers: { some: { status: OfferStatus.pending } },
-			},
-			select: {
-				...ContestConstants.OPTIONS_GET_ONE_CONTEST,
-				price: false,
-				_count: { ...ContestConstants.OPTIONS_GET_COUNT_PENDING_OFFERS },
-			},
-		};
-		const contest: ModeratorContestByIdResDto = await this.getContestById(
+	): Promise<
+		| CustomerContestByIdResDto
+		| CreatorContestByIdResDto
+		| ModeratorContestByIdResDto
+	> {
+		const queryContest: Prisma.ContestFindFirstArgs =
+			createPredicatesOneContest(id, role, contestId);
+		const contest:
+			| CustomerContestByIdResDto
+			| CreatorContestByIdResDto
+			| ModeratorContestByIdResDto = await this.prisma.contest.findFirst(
 			queryContest,
 		);
 		if (!contest)
@@ -244,28 +195,6 @@ export class ContestService {
 				);
 			deleteFileName && this.fileService.removeFile(deleteFileName);
 			return updateContest;
-		} catch (e) {
-			throw new InternalServerErrorException(
-				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
-				{
-					cause: e,
-				},
-			);
-		}
-	}
-
-	private async getContestById(
-		queryContest: Prisma.ContestFindFirstArgs,
-	): Promise<Contest> {
-		try {
-			const contest: Contest = await this.prisma.contest.findFirst(
-				queryContest,
-			);
-			if (!contest)
-				return Promise.reject(
-					new BadRequestException(AppErrors.NO_DATA_FOR_THIS_CONTEST),
-				);
-			return contest;
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,

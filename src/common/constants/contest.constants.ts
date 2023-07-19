@@ -16,9 +16,12 @@ import {
 	IOptionsGetOneContest,
 } from '../interfaces/constants';
 import {
+	CreatorContestByIdResDto,
 	CreatorContestsResDto,
+	CustomerContestByIdResDto,
 	CustomerContestsResDto,
 	LogoDataContestResDto,
+	ModeratorContestByIdResDto,
 	ModeratorContestResDto,
 	NameDataContestResDto,
 	QueryCreatorContestDto,
@@ -257,3 +260,74 @@ export const OPTIONS_GET_COUNT_PENDING_OFFERS: IOptionsGetCountPendingOffers = {
 		},
 	},
 };
+
+export const API_OK_RESPONSE_EXAMPLES_GET_CONTEST_BY_ID_CUSTOMER: CustomerContestByIdResDto =
+	{
+		id: 1,
+		title: 'Name of contest',
+		contestType: 'name',
+		typeOfName: 'Company',
+		brandStyle: 'Fun',
+		typeOfTagline: 'Classic',
+		createdAt: new Date(),
+		price: new Prisma.Decimal(100),
+		fileName: '',
+		originalFileName: '',
+		focusOfWork: 'What does your company',
+		industry: 'CreativeAgency',
+		nameVenture: 'Name venture',
+		styleName: 'Classic',
+		targetCustomer: 'Tell us about your customers',
+		_count: {
+			offers: 1,
+		},
+	};
+
+export const API_OK_RESPONSE_EXAMPLES_GET_CONTEST_BY_ID_CREATOR: CreatorContestByIdResDto =
+	{
+		id: 1,
+		title: 'Name of contest',
+		contestType: 'name',
+		typeOfName: 'Company',
+		brandStyle: 'Fun',
+		typeOfTagline: 'Classic',
+		createdAt: new Date(),
+		price: new Prisma.Decimal(100),
+		fileName: null,
+		originalFileName: null,
+		focusOfWork: 'What does your company',
+		industry: 'CreativeAgency',
+		nameVenture: 'Name venture',
+		styleName: 'Classic',
+		targetCustomer: 'Tell us about your customers',
+		user: {
+			firstName: 'Ragnar',
+			lastName: 'Lodbrok',
+			displayName: 'ragnarek',
+			avatar: 'anon.png',
+		},
+		_count: {
+			offers: 2,
+		},
+	};
+
+export const API_OK_RESPONSE_EXAMPLES_GET_CONTEST_BY_ID_MODERATOR: ModeratorContestByIdResDto =
+	{
+		id: 1,
+		title: 'Name of contest',
+		contestType: 'name',
+		typeOfName: 'Company',
+		brandStyle: 'Fun',
+		typeOfTagline: 'Classic',
+		createdAt: new Date(),
+		fileName: '',
+		originalFileName: '',
+		focusOfWork: 'What does your company',
+		industry: 'CreativeAgency',
+		nameVenture: 'Name venture',
+		styleName: 'Classic',
+		targetCustomer: 'Tell us about your customers',
+		_count: {
+			offers: 1,
+		},
+	};
