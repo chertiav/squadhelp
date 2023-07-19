@@ -1,25 +1,37 @@
 import {
+	BrandStyle,
 	ContestStatus,
 	Industry,
 	OfferStatus,
+	Prisma,
 	StyleName,
 	TypeOfName,
 	TypeOfTagline,
 } from '@prisma/client';
 import {
-	IDataForContest,
 	IOptionsGetAllContests,
 	IOptionsGetAllContestsModerator,
 	IOptionsGetCountActiveOffers,
 	IOptionsGetCountPendingOffers,
 	IOptionsGetOneContest,
 } from '../interfaces/constants';
+import {
+	CreatorContestsResDto,
+	CustomerContestsResDto,
+	LogoDataContestResDto,
+	ModeratorContestResDto,
+	NameDataContestResDto,
+	QueryCreatorContestDto,
+	QueryCustomerContestDto,
+	QueryModeratorContestDto,
+	TaglineDataContestResDto,
+} from '../dto/contest';
 
 //Data contest
-export const INDUSTRY_API_PROPERTY_DATA_CONTEST: string[] = [
-	'Creative Agency',
-	'Consulting Firm',
-	'Skin care',
+export const INDUSTRY_API_PROPERTY_DATA_CONTEST: Industry[] = [
+	'Creative Agency' as Industry,
+	'Consulting Firm' as Industry,
+	'Skin care' as Industry,
 	'Biotech',
 	'Publisher',
 	'Education',
@@ -28,29 +40,32 @@ export const INDUSTRY_API_PROPERTY_DATA_CONTEST: string[] = [
 	'Builders',
 ];
 
-export const BRAND_STYLE_API_PROPERTY_DATA_CONTEST: string[] = [
+export const BRAND_STYLE_API_PROPERTY_DATA_CONTEST: BrandStyle[] = [
 	'Tech',
 	'Fun',
 	'Fancy',
 	'Minimal',
-	'Brick & Mortar',
-	'Photo-based',
+	'Brick & Mortar' as BrandStyle,
+	'Photo-based' as BrandStyle,
 ];
-export const API_OK_RESPONSE_EXAMPLES_NAME: IDataForContest = {
-	industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
-	typeOfName: Object.values(TypeOfName),
-	nameStyle: Object.values(StyleName),
-};
+export const GET_DATA_CONTEST_API_OK_RESPONSE_EXAMPLES_NAME: NameDataContestResDto =
+	{
+		industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
+		typeOfName: Object.values(TypeOfName),
+		nameStyle: Object.values(StyleName),
+	};
 
-export const API_OK_RESPONSE_EXAMPLES_LOGO: IDataForContest = {
-	industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
-	brandStyle: BRAND_STYLE_API_PROPERTY_DATA_CONTEST,
-};
+export const GET_DATA_CONTEST_API_OK_RESPONSE_EXAMPLES_LOGO: LogoDataContestResDto =
+	{
+		industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
+		brandStyle: BRAND_STYLE_API_PROPERTY_DATA_CONTEST,
+	};
 
-export const API_OK_RESPONSE_EXAMPLES_TAG_LINE: IDataForContest = {
-	industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
-	typeOfTagline: Object.values(TypeOfTagline),
-};
+export const GET_DATA_CONTEST_API_OK_RESPONSE_EXAMPLES_TAG_LINE: TaglineDataContestResDto =
+	{
+		industry: INDUSTRY_API_PROPERTY_DATA_CONTEST,
+		typeOfTagline: Object.values(TypeOfTagline),
+	};
 
 // get All contests
 
@@ -90,6 +105,125 @@ export const OPTIONS_GET_ALL_CONTESTS: IOptionsGetAllContests = {
 	createdAt: true,
 	price: true,
 };
+
+export const API_QUERY_EXAMPLES_GET_CONTESTS_CUSTOMER: {
+	description: string;
+	value: QueryCustomerContestDto;
+} = {
+	description: `
+				limit - Limit on the number of contests per request, Example : 8, required: true
+				page - Number of records to skip, Example : 0, required: true
+				status - Contest status, Available values : ${CONTEST_STATUS}. Example : ${CONTEST_STATUS[0]}, required: true
+				`,
+	value: {
+		limit: 8,
+		page: 0,
+		status: CONTEST_STATUS[0],
+	},
+};
+
+export const API_QUERY_EXAMPLES_GET_CONTESTS_CREATOR: {
+	description: string;
+	value: QueryCreatorContestDto;
+} = {
+	description: `
+				limit - Limit on the number of contests per request, Example : 8, required: true
+				page - Number of records to skip, Example : 0, required: true
+				status - Contest status, Available values : ${CONTEST_STATUS}. Example : ${CONTEST_STATUS[0]}, required: true
+				industry - Filter by industry  Available values : ${CREATOR_QUERY_CONTEST_INDUSTRY}. Example : ${CREATOR_QUERY_CONTEST_INDUSTRY[0]}, required: true
+				typeIndex - Filter by type Available values:  ${CONTEST_TYPE}. . Example : ${CONTEST_TYPE[0]}, required: true
+				contestId - Filter by contest id, required: false, example: null
+				awardSort - Sorting order, Available values: 'asc', 'desc', example: 'asc', required: true
+				ownEntries - Contests with own entries, Available values: 'true', 'false', example: 'false', required: true
+				`,
+	value: {
+		limit: 8,
+		page: 0,
+		status: CONTEST_STATUS[0],
+		industry: CREATOR_QUERY_CONTEST_INDUSTRY[0],
+		typeIndex: CONTEST_TYPE[0],
+		contestId: null,
+		awardSort: 'asc',
+		ownEntries: 'false',
+	},
+};
+export const API_QUERY_EXAMPLES_GET_CONTESTS_MODERATOR: {
+	description: string;
+	value: QueryModeratorContestDto;
+} = {
+	description: `
+				limit - Limit on the number of contests per request, Example : 8, required: true
+				page - Number of records to skip, Example : 0, required: true
+				industry - Filter by industry  Available values : ${CREATOR_QUERY_CONTEST_INDUSTRY}. Example : ${CREATOR_QUERY_CONTEST_INDUSTRY[0]}, required: true
+				typeIndex - Filter by type Available values:  ${CONTEST_TYPE}. . Example : ${CONTEST_TYPE[0]}, required: true
+				contestId - Filter by contest id, required: false, example: null
+				`,
+	value: {
+		limit: 8,
+		page: 0,
+		industry: CREATOR_QUERY_CONTEST_INDUSTRY[0],
+		typeIndex: CONTEST_TYPE[0],
+		contestId: null,
+	},
+};
+
+export const API_OK_RESPONSE_EXAMPLES_GET_CONTESTS_CUSTOMER: CustomerContestsResDto =
+	{
+		contests: [
+			{
+				id: 1,
+				title: 'Name of contest',
+				contestType: 'name',
+				typeOfName: 'Company',
+				brandStyle: 'Fun',
+				typeOfTagline: 'Classic',
+				createdAt: new Date(),
+				price: new Prisma.Decimal(100),
+				_count: {
+					offers: 1,
+				},
+			},
+		],
+		totalCount: 1,
+	};
+
+export const API_OK_RESPONSE_EXAMPLES_GET_CONTESTS_CREATOR: CreatorContestsResDto =
+	{
+		contests: [
+			{
+				id: 1,
+				title: 'Name of contest',
+				contestType: 'name',
+				typeOfName: 'Company',
+				brandStyle: 'Fun',
+				typeOfTagline: 'Classic',
+				createdAt: new Date(),
+				price: new Prisma.Decimal(100),
+				_count: {
+					offers: 1,
+				},
+			},
+		],
+		totalCount: 1,
+	};
+
+export const API_OK_RESPONSE_EXAMPLES_GET_CONTESTS_MODERATOR: ModeratorContestResDto =
+	{
+		contests: [
+			{
+				id: 1,
+				title: 'Name of contest',
+				contestType: 'name',
+				typeOfName: 'Company',
+				brandStyle: 'Fun',
+				typeOfTagline: 'Classic',
+				_count: {
+					offers: 1,
+				},
+			},
+		],
+		totalCount: 1,
+	};
 
 // get one contests
 

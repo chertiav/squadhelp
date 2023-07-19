@@ -32,10 +32,45 @@ import { AppMessages } from '../../messages';
 
 // data for contest
 export class DataContestDto {
+	@ApiProperty({
+		type: 'array',
+		items: {
+			type: 'string',
+		},
+		example: ContestConstants.INDUSTRY_API_PROPERTY_DATA_CONTEST,
+	})
 	industry: Industry[];
+	@ApiProperty({
+		type: 'array',
+		items: {
+			type: 'string',
+		},
+		example: Object.keys(TypeOfName),
+	})
 	typeOfName?: TypeOfName[];
+	@ApiProperty({
+		type: 'array',
+		items: {
+			type: 'string',
+		},
+		example: Object.keys(StyleName),
+	})
 	nameStyle?: StyleName[];
+	@ApiProperty({
+		type: 'array',
+		items: {
+			type: 'string',
+		},
+		example: ContestConstants.BRAND_STYLE_API_PROPERTY_DATA_CONTEST,
+	})
 	brandStyle?: BrandStyle[];
+	@ApiProperty({
+		type: 'array',
+		items: {
+			type: 'string',
+		},
+		example: Object.keys(TypeOfTagline),
+	})
 	typeOfTagline?: TypeOfTagline[];
 }
 
@@ -192,7 +227,7 @@ export class QueryCreatorContestDto extends ContestStatusDto {
 	ownEntries: string;
 }
 export class QueryModeratorContestDto extends IntersectionType(
-	ContestStatusDto,
+	QueryPaginationDto,
 	PickType(QueryCreatorContestDto, ['typeIndex', 'contestId', 'industry']),
 ) {}
 
