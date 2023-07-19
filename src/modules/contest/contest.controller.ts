@@ -28,7 +28,9 @@ import {
 	ApiUnauthorizedResponse,
 	refs,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
+import { ContestType, Role } from '@prisma/client';
 import { ContestService } from './contest.service';
 import { JWTAuthGuard } from '../../guards';
 import {
@@ -37,10 +39,9 @@ import {
 	InternalServerErrorExceptionResDto,
 	UnauthorizedExceptionResDto,
 } from '../../common/dto/exception';
-import { Paginate, Roles, UserId } from '../../decorators';
+import { Paginate, Roles, UserId, UserRole } from '../../decorators';
 import { RolesGuard } from '../../guards';
 import { IPagination } from '../../common/interfaces/pagination';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { fileStorage } from '../file/file.storage';
 import { UpdateFileInterceptor } from '../../interceptors';
 import { AppMessages } from '../../common/messages';
@@ -62,7 +63,6 @@ import {
 	TagLineContestUpdateDto,
 	CustomerUpdateContestResDto,
 } from '../../common/dto/contest';
-import { ContestType, Role } from '@prisma/client';
 import { ContestConstants } from '../../common/constants';
 
 @ApiTags('contest')
@@ -92,15 +92,25 @@ export class ContestController {
 		description: 'Data for create Name contest',
 		content: {
 			'application/json': {
+				schema: {
+					oneOf: refs(
+						NameDataContestResDto,
+						LogoDataContestResDto,
+						TaglineDataContestResDto,
+					),
+				},
 				examples: {
 					name: {
-						value: { ...ContestConstants.API_OK_RESPONSE_EXAMPLES_NAME },
+						value:
+							ContestConstants.GET_DATA_CONTEST_API_OK_RESPONSE_EXAMPLES_NAME,
 					},
 					logo: {
-						value: { ...ContestConstants.API_OK_RESPONSE_EXAMPLES_LOGO },
+						value:
+							ContestConstants.GET_DATA_CONTEST_API_OK_RESPONSE_EXAMPLES_LOGO,
 					},
 					tagline: {
-						value: { ...ContestConstants.API_OK_RESPONSE_EXAMPLES_TAG_LINE },
+						value:
+							ContestConstants.GET_DATA_CONTEST_API_OK_RESPONSE_EXAMPLES_TAG_LINE,
 					},
 				},
 			},
@@ -134,92 +144,77 @@ export class ContestController {
 		description: 'Internal server error message',
 		type: InternalServerErrorExceptionResDto,
 	})
+	@ApiExtraModels(
+		QueryCustomerContestDto,
+		QueryCreatorContestDto,
+		QueryModeratorContestDto,
+		CustomerContestsResDto,
+		CreatorContestsResDto,
+		ModeratorContestResDto,
+	)
 	@ApiOkResponse({
-		description: 'Customer contests data',
-		type: CustomerContestsResDto,
+		description: 'Contests data',
+		content: {
+			'application/json': {
+				schema: {
+					oneOf: refs(
+						CustomerContestsResDto,
+						CreatorContestsResDto,
+						ModeratorContestResDto,
+					),
+				},
+				examples: {
+					customer: {
+						value:
+							ContestConstants.API_OK_RESPONSE_EXAMPLES_GET_CONTESTS_CUSTOMER,
+					},
+					creator: {
+						value:
+							ContestConstants.API_OK_RESPONSE_EXAMPLES_GET_CONTESTS_CREATOR,
+					},
+					moderator: {
+						value:
+							ContestConstants.API_OK_RESPONSE_EXAMPLES_GET_CONTESTS_MODERATOR,
+					},
+				},
+			},
+		},
 	})
 	@ApiQuery({
-		description: 'Query parameters',
-		type: QueryCustomerContestDto,
+		description: 'Query parameters for customers, creators, moderators',
+		name: 'query',
+		style: 'form',
+		schema: {
+			allOf: refs(
+				QueryCustomerContestDto,
+				QueryCreatorContestDto,
+				QueryModeratorContestDto,
+			),
+		},
+		examples: {
+			customer: ContestConstants.API_QUERY_EXAMPLES_GET_CONTESTS_CUSTOMER,
+			creator: ContestConstants.API_QUERY_EXAMPLES_GET_CONTESTS_CREATOR,
+			moderator: ContestConstants.API_QUERY_EXAMPLES_GET_CONTESTS_MODERATOR,
+		},
 	})
 	@ApiCookieAuth()
-	@Roles(Role.customer)
+	@Roles(Role.customer, Role.creator, Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
-	@Version('1')
-	@Get('cu')
-	async contestsForCustomer(
+	@Version('2')
+	@Get()
+	async contests(
 		@UserId() id: number,
+		@UserRole() role: Role,
 		@Paginate() pagination: IPagination,
-		@Query() query,
-	): Promise<CustomerContestsResDto> {
-		return this.contestService.getContestsForCustomer(id, query, pagination);
-	}
-
-	@ApiOperation({ description: 'Get all contests for creative' })
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiInternalServerErrorResponse({
-		description: 'Internal server error message',
-		type: InternalServerErrorExceptionResDto,
-	})
-	@ApiForbiddenResponse({
-		description: 'Access denied message',
-		type: ForbiddenExceptionResDto,
-	})
-	@ApiQuery({
-		description: 'Query parameters',
-		type: QueryCreatorContestDto,
-	})
-	@ApiOkResponse({
-		description: 'Customer contests data',
-		type: CreatorContestsResDto,
-	})
-	@Roles(Role.creator)
-	@UseGuards(JWTAuthGuard, RolesGuard)
-	@ApiCookieAuth()
-	@Version('1')
-	@Get('cr')
-	async contestForCreative(
-		@UserId() id: number,
-		@Paginate() pagination: IPagination,
-		@Query() query,
-	): Promise<CreatorContestsResDto> {
-		return this.contestService.getContestForCreative(id, query, pagination);
-	}
-
-	@ApiOperation({ description: 'Get contests for moderator' })
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiInternalServerErrorResponse({
-		description: 'Internal server error message',
-		type: InternalServerErrorExceptionResDto,
-	})
-	@ApiForbiddenResponse({
-		description: 'Access denied message',
-		type: ForbiddenExceptionResDto,
-	})
-	@ApiQuery({
-		description: 'Query parameters',
-		type: QueryModeratorContestDto,
-	})
-	@ApiOkResponse({
-		description: 'Contests data for moderator',
-		type: ModeratorContestResDto,
-	})
-	@Roles(Role.moderator)
-	@UseGuards(JWTAuthGuard, RolesGuard)
-	@ApiCookieAuth()
-	@Version('1')
-	@Get('mo')
-	async contestsForModerator(
-		@Paginate() pagination: IPagination,
-		@Query() query,
-	): Promise<ModeratorContestResDto> {
-		return this.contestService.getContestForModerator(query, pagination);
+		@Query()
+		query:
+			| QueryCustomerContestDto
+			| QueryCreatorContestDto
+			| QueryModeratorContestDto,
+	): Promise<
+		CustomerContestsResDto | CreatorContestsResDto | ModeratorContestResDto
+	> {
+		return this.contestService.getContests(id, role, query, pagination);
 	}
 
 	@ApiOperation({ description: 'Get contest for customer by id' })
