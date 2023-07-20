@@ -12,6 +12,7 @@ import { AppErrors } from '../../common/errors';
 import { UserConstants } from '../../common/constants';
 import { FileService } from '../file/file.service';
 import {
+	BalanceUserDto,
 	CreateUserDto,
 	InfoUserDto,
 	PublicUserDto,
@@ -131,6 +132,24 @@ export class UserService {
 				dto.deleteFileName && this.fileService.removeFile(dto.deleteFileName);
 				return updateUser;
 			}
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
+
+	public async getBalanceUser(id: number): Promise<BalanceUserDto> {
+		try {
+			return await this.prisma.user.findUnique({
+				where: { id },
+				select: {
+					balance: true,
+				},
+			});
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
