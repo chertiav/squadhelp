@@ -314,7 +314,8 @@ export class ContestController {
 	@ApiBody({
 		description:
 			'Contest data for update, using three different schemes - ' +
-			'NameContestUpdateData, LogoContestUpdateDto, TagLineContestUpdateDto',
+			'NameContestUpdateData, LogoContestUpdateDto, TagLineContestUpdateDto' +
+			'As an example NameContestUpdateData',
 		type: NameContestUpdateData,
 		schema: {
 			oneOf: refs(
