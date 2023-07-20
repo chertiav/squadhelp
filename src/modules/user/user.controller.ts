@@ -14,6 +14,7 @@ import {
 	ApiBody,
 	ApiConsumes,
 	ApiCookieAuth,
+	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
@@ -22,17 +23,20 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 
+import { Role } from '@prisma/client';
 import { AppMessages } from '../../common/messages';
 import { imageStorage } from '../file/file.storage';
-import { UserId } from '../../decorators';
+import { Roles, UserId } from '../../decorators';
 import {
+	ForbiddenExceptionResDto,
 	InternalServerErrorExceptionResDto,
 	UnauthorizedExceptionResDto,
 } from '../../common/dto/exception';
-import { JWTAuthGuard } from '../../guards';
+import { JWTAuthGuard, RolesGuard } from '../../guards';
 import { UserService } from './user.service';
 import { UpdateFileInterceptor } from '../../interceptors';
 import {
+	BalanceUserDto,
 	InfoUserDto,
 	UpdateUserDto,
 	UpdateUserResDto,
@@ -101,5 +105,31 @@ export class UserController {
 	@Get('info')
 	async info(@UserId() id: number): Promise<InfoUserDto> {
 		return this.userService.getInfoUser(id);
+	}
+
+	@ApiOperation({ description: "Getting the user's balance" })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionResDto,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionResDto,
+	})
+	@ApiForbiddenResponse({
+		description: 'Access denied message',
+		type: ForbiddenExceptionResDto,
+	})
+	@ApiOkResponse({
+		description: "User's balance ",
+		type: BalanceUserDto,
+	})
+	@Roles(Role.creator)
+	@ApiCookieAuth()
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@Version('1')
+	@Get('balance')
+	async balance(@UserId() id: number): Promise<BalanceUserDto> {
+		return this.userService.getBalanceUser(id);
 	}
 }

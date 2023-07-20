@@ -1,5 +1,6 @@
 import { ApiProperty, IntersectionType, PickType } from '@nestjs/swagger';
 import {
+	IsDecimal,
 	IsEmail,
 	IsEnum,
 	IsNotEmpty,
@@ -8,6 +9,7 @@ import {
 } from 'class-validator';
 
 import { Role } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { CommonConstants } from '../../constants';
 import { AppMessages } from '../../messages';
 import { FileDto } from '../file';
@@ -107,4 +109,12 @@ export class UpdateUserResDto {
 		example: AppMessages.MSG_USER_INFORMATION_UPDATED,
 	})
 	message: string;
+}
+export class BalanceUserDto {
+	@IsDecimal()
+	@ApiProperty({
+		description: "User's balance",
+		example: 100,
+	})
+	balance: Decimal;
 }
