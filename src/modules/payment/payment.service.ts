@@ -9,6 +9,7 @@ import { Bank, ContestStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { ContestService } from '../contest/contest.service';
 import {
+	CashOutDto,
 	LogoCreateContestPayDto,
 	NameCreateContestPayDto,
 	PayDto,
@@ -20,30 +21,33 @@ import {
 	ICreateBulkContest,
 } from '../../common/interfaces/contest';
 import { PayConstants } from './../../common/constants';
+import { UserService } from '../user/user.service';
+import { BalanceUserDto } from '../../common/dto/user';
 
 @Injectable()
 export class PaymentService {
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly contestService: ContestService,
+		private readonly userService: UserService,
 	) {}
 
 	public async payment(id: number, dto: PayDto): Promise<number> {
-		const { number, cvc, expiry, totalPrice, contests }: PayDto = dto;
-		await this.verifyCard(number, cvc, expiry, totalPrice);
+		const { number, cvc, expiry, sum, contests }: PayDto = dto;
+		await this.verifyCard(number, cvc, expiry, sum);
 		const dataContests: ICreateBulkContest = this.createDataForCreateContests(
 			id,
 			contests,
 		);
 		return await this.prisma.$transaction(async (): Promise<number> => {
 			await this.updateBalance(
-				{ balance: { decrement: totalPrice } },
+				{ balance: { decrement: sum } },
 				number,
 				cvc,
 				expiry,
 			);
 			await this.updateBalance(
-				{ balance: { increment: totalPrice } },
+				{ balance: { increment: sum } },
 				PayConstants.SQUADHELP_BANK_NUMBER,
 				PayConstants.SQUADHELP_BANK_CVC,
 				PayConstants.SQUADHELP_BANK_EXPIRY,
@@ -52,7 +56,33 @@ export class PaymentService {
 		});
 	}
 
-	public async cashOut(): Promise<any> {}
+	public async cashOut(dto: CashOutDto, id: number): Promise<BalanceUserDto> {
+		const { number, cvc, expiry, sum }: CashOutDto = dto;
+		const balanceForCheck: BalanceUserDto =
+			await this.userService.getBalanceUser(id);
+		if (balanceForCheck.balance < sum)
+			throw new BadRequestException(AppErrors.INSUFFICIENT_FUNDS_TO_PAY);
+		return await this.prisma.$transaction(async (): Promise<BalanceUserDto> => {
+			await this.updateBalance(
+				{ balance: { increment: sum } },
+				number,
+				cvc,
+				expiry,
+			);
+			await this.updateBalance(
+				{ balance: { decrement: sum } },
+				PayConstants.SQUADHELP_BANK_NUMBER,
+				PayConstants.SQUADHELP_BANK_CVC,
+				PayConstants.SQUADHELP_BANK_EXPIRY,
+			);
+			const newBalance = await this.userService.updateUser(
+				id,
+				{ balance: { decrement: sum } },
+				{ balance: true },
+			);
+			return newBalance as BalanceUserDto;
+		});
+	}
 
 	private async updateBalance(data, number, cvc, expiry): Promise<void> {
 		try {
@@ -74,7 +104,7 @@ export class PaymentService {
 		}
 	}
 
-	private async verifyCard(number, cvc, expiry, totalPrice): Promise<void> {
+	private async verifyCard(number, cvc, expiry, sum): Promise<void> {
 		const dataBank: Bank = await this.prisma.bank.findFirst({
 			where: {
 				cardNumber: number.replace(/ /g, ''),
@@ -85,7 +115,7 @@ export class PaymentService {
 		if (!dataBank) {
 			throw new BadRequestException(AppErrors.INCORRECT_PAYMENT_CARD_DETAILS);
 		}
-		if (dataBank.balance < totalPrice)
+		if (dataBank.balance < sum)
 			throw new BadRequestException(AppErrors.INSUFFICIENT_FUNDS_TO_PAY);
 	}
 

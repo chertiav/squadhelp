@@ -5,4 +5,5 @@ export const AppMessages = {
 	MSG_USER_INFORMATION_UPDATED: 'User information updated',
 	MSG_CONTEST_INFORMATION_UPDATED: 'Competition conditions have changed',
 	MSG_OPENED_NEW_CONTESTS: 'Opened new contests',
+	MSG_MONEY_SEND_SUCCESSFULLY: 'Money sent successfully',
 };

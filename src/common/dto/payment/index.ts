@@ -1,4 +1,9 @@
-import { ApiProperty, getSchemaPath, IntersectionType } from '@nestjs/swagger';
+import {
+	ApiProperty,
+	getSchemaPath,
+	IntersectionType,
+	PickType,
+} from '@nestjs/swagger';
 import { FilesDto } from '../file';
 import {
 	ArrayMaxSize,
@@ -18,6 +23,7 @@ import {
 } from '../contest';
 import { Decimal } from '@prisma/client/runtime/library';
 import { AppMessages } from '../../messages';
+import { BalanceUserDto } from '../user';
 
 class HaveFileCreateContestDto {
 	@IsNotEmpty()
@@ -79,7 +85,7 @@ export class PayDto extends IntersectionType(FilesDto) {
 		example: '300',
 		type: 'number',
 	})
-	totalPrice: Decimal;
+	sum: Decimal;
 
 	@IsArray()
 	@ArrayMinSize(1)
@@ -113,6 +119,21 @@ export class PayResDto {
 	@ApiProperty({
 		description: 'Success message',
 		example: `${AppMessages.MSG_OPENED_NEW_CONTESTS}: 3`,
+	})
+	message: string;
+}
+
+export class CashOutDto extends PickType(PayDto, [
+	'number',
+	'expiry',
+	'cvc',
+	'sum',
+]) {}
+
+export class CashOutResDto extends BalanceUserDto {
+	@ApiProperty({
+		description: 'Success message',
+		example: AppMessages.MSG_MONEY_SEND_SUCCESSFULLY,
 	})
 	message: string;
 }

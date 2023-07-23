@@ -114,7 +114,8 @@ export class BalanceUserDto {
 	@IsDecimal()
 	@ApiProperty({
 		description: "User's balance",
+		type: 'Decimal',
 		example: 100,
 	})
-	balance: Decimal;
+	balance?: Decimal;
 }

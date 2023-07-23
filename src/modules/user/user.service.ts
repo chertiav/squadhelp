@@ -5,8 +5,7 @@ import {
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
-import { PrismaClient, User } from '@prisma/client';
-import { ITXClientDenyList } from '@prisma/client/runtime/library';
+import { User } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppErrors } from '../../common/errors';
 import { UserConstants } from '../../common/constants';
@@ -106,7 +105,7 @@ export class UserService {
 		}
 	}
 
-	public async updateUser(
+	public async updateInfoUser(
 		dto: UpdateUserDto,
 		id: number,
 	): Promise<InfoUserDto> {
@@ -118,14 +117,13 @@ export class UserService {
 				avatar: dto.avatar,
 			};
 			const updateUser: InfoUserDto = await this.prisma.$transaction(
-				async (
-					prisma: Omit<PrismaClient, ITXClientDenyList>,
-				): Promise<InfoUserDto> => {
-					return prisma.user.update({
-						where: { id },
-						data: { ...userUpdateData },
-						select: { ...UserConstants.SELECT_USER_FIELDS },
-					});
+				async (): Promise<InfoUserDto> => {
+					const newUserData = await this.updateUser(
+						id,
+						{ ...userUpdateData },
+						{ ...UserConstants.SELECT_USER_FIELDS },
+					);
+					return newUserData as InfoUserDto;
 				},
 			);
 			if (updateUser) {
@@ -158,6 +156,18 @@ export class UserService {
 				},
 			);
 		}
+	}
+
+	public async updateUser(
+		id: number,
+		data,
+		select,
+	): Promise<InfoUserDto | BalanceUserDto> {
+		return this.prisma.user.update({
+			where: { id },
+			data,
+			select,
+		});
 	}
 
 	private async getHashPassword(

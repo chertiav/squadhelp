@@ -1,6 +1,8 @@
 import {
 	Body,
 	Controller,
+	HttpCode,
+	HttpStatus,
 	Post,
 	UploadedFiles,
 	UseGuards,
@@ -39,8 +41,11 @@ import {
 	PayResDto,
 	PayDto,
 	TaglineCreateContestPayDto,
+	CashOutDto,
+	CashOutResDto,
 } from '../../common/dto/payment';
 import { AppMessages } from '../../common/messages';
+import { BalanceUserDto } from '../../common/dto/user';
 
 @ApiTags('payment')
 @Controller('payment')
@@ -110,14 +115,22 @@ export class PaymentController {
 		description: 'Invalid request data message',
 		type: BadRequestExceptionResDto,
 	})
-	//@ApiBody()
-	// @ApiOkResponse()
+	@ApiBody({ type: CashOutDto })
+	@ApiOkResponse({ type: CashOutResDto })
+	@HttpCode(HttpStatus.OK)
 	@ApiCookieAuth()
 	@Roles(Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
 	@Post('cashout')
-	async cashOut(@UserId() id: number): Promise<any> {
-		return this.paymentService.cashOut();
+	async cashOut(
+		@UserId() id: number,
+		@Body() dto: CashOutDto,
+	): Promise<CashOutResDto> {
+		const balance: BalanceUserDto = await this.paymentService.cashOut(dto, id);
+		return {
+			...balance,
+			message: AppMessages.MSG_MONEY_SEND_SUCCESSFULLY,
+		};
 	}
 }
