@@ -1,4 +1,12 @@
-import { ContestStatus, ContestType, Prisma } from '@prisma/client';
+import {
+	BrandStyle,
+	ContestStatus,
+	ContestType,
+	Industry,
+	Prisma,
+	StyleName,
+	TypeOfTagline,
+} from '@prisma/client';
 
 export interface IQueryDataContest {
 	characteristic1: string;
@@ -8,11 +16,11 @@ export interface IQueryDataContest {
 export interface ICreatContest {
 	contestType: ContestType;
 	title?: string;
-	industry?: string;
+	industry?: Industry;
 	typeOfName?: string;
-	styleName?: string;
-	brandStyle?: string;
-	typeOfTagline?: string;
+	styleName?: StyleName;
+	brandStyle?: BrandStyle;
+	typeOfTagline?: TypeOfTagline;
 	focusOfWork?: string;
 	nameVenture?: string;
 	targetCustomer?: string;

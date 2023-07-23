@@ -81,7 +81,7 @@ export class UserController {
 		@UploadedFile() file: Express.Multer.File,
 		@Body() dto: UpdateUserDto,
 	): Promise<UpdateUserResDto> {
-		const user: InfoUserDto = await this.userService.updateUser(dto, id);
+		const user: InfoUserDto = await this.userService.updateInfoUser(dto, id);
 		return { user, message: AppMessages.MSG_USER_INFORMATION_UPDATED };
 	}
 

@@ -157,3 +157,6 @@ export const createPredicatesOneContest = (
 		}
 	}
 };
+
+export const fileNameEncode = (fileName: string): string =>
+	Buffer.from(fileName, 'latin1').toString('utf8');

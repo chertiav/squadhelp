@@ -8,5 +8,6 @@ import { FileService } from '../file/file.service';
 @Module({
 	providers: [ContestService, PrismaService, FileService],
 	controllers: [ContestController],
+	exports: [ContestService],
 })
 export class ContestModule {}

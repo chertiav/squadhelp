@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces';
 
 import { CommonConstants } from '../common/constants';
+import { fileNameEncode } from '../common/helpers';
 
 @Injectable()
 export class UpdateFileInterceptor implements NestInterceptor {
@@ -19,12 +20,8 @@ export class UpdateFileInterceptor implements NestInterceptor {
 				req.body.avatar = req.file.filename;
 			}
 			if (req.body?.industry) {
-				const fileNameEncode: string = Buffer.from(
-					req.file.originalname,
-					'latin1',
-				).toString('utf8');
 				req.body.fileName = req.file.filename;
-				req.body.originalFileName = fileNameEncode;
+				req.body.originalFileName = fileNameEncode(req.file.originalname);
 			}
 		}
 		if (req.body.deleteFileName && !req.file) {
