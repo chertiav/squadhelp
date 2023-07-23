@@ -14,3 +14,8 @@ export class FileDto {
 	@ApiFile()
 	file?: Express.Multer.File;
 }
+
+export class FilesDto {
+	@ApiFile({ isArray: true })
+	files?: Express.Multer.File[];
+}

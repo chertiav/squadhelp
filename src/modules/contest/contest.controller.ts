@@ -66,7 +66,7 @@ import {
 import { ContestConstants } from '../../common/constants';
 
 @ApiTags('contest')
-@Controller({ path: 'contest' })
+@Controller('contest')
 export class ContestController {
 	constructor(private readonly contestService: ContestService) {}
 
@@ -122,7 +122,7 @@ export class ContestController {
 		enum: ContestType,
 	})
 	@ApiCookieAuth()
-	@UseGuards(JWTAuthGuard)
+	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Roles(Role.customer)
 	@Version('1')
 	@Get('start/:contestType')

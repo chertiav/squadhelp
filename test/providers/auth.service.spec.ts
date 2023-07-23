@@ -8,10 +8,10 @@ import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { AppModule } from '../../src/modules/app/app.module';
 import { userMockData } from '../mockData';
-import { CreateUserDto, PublicUserDto } from '../../src/common/dto/user/temp';
 import { JwtService } from '@nestjs/jwt';
-import { IJwtPayload } from '../../src/common/interfaces/temp/auth';
-import { DEFAULT_AVATAR_NAME } from '../../src/common/constants';
+import { DEFAULT_AVATAR_NAME } from '../../src/common/constants/common.constants';
+import { CreateUserDto, PublicUserDto } from '../../src/common/dto/user';
+import { IJwtPayload } from '../../src/common/interfaces/auth';
 
 describe('Auth Service', () => {
 	let app: INestApplication;

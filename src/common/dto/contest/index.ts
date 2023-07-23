@@ -368,3 +368,18 @@ export class CustomerUpdateContestResDto {
 	})
 	message: string;
 }
+
+export class NameCreateContestDto extends IntersectionType(
+	OmitType(NameContestUpdateData, ['deleteFileName', 'file'] as const),
+	PickType(ContestDto, ['price', 'contestType']),
+) {}
+
+export class LogoCreateContestDto extends IntersectionType(
+	OmitType(LogoContestUpdateDto, ['deleteFileName', 'file'] as const),
+	PickType(ContestDto, ['price', 'contestType']),
+) {}
+
+export class TaglineCreateContestDto extends IntersectionType(
+	OmitType(TagLineContestUpdateDto, ['deleteFileName', 'file'] as const),
+	PickType(ContestDto, ['price', 'contestType']),
+) {}

@@ -14,7 +14,7 @@ CREATE TYPE "StyleName" AS ENUM ('Classic', 'Fun', 'Professional', 'Descriptive'
 CREATE TYPE "TypeOfTagline" AS ENUM ('Classic', 'Fun', 'Powerful', 'Descriptive', 'Modern', 'Any');
 
 -- CreateEnum
-CREATE TYPE "Industry" AS ENUM ('Creative Agency', 'Consulting Firm', 'Skin care', 'Biotech', 'Publisher', 'Education', 'Footwear', 'Medical', 'Builders');
+CREATE TYPE "Industry" AS ENUM ('Creative Agency', 'Consulting Firm', 'Skin Care', 'Biotech', 'Publisher', 'Education', 'Footwear', 'Medical', 'Builders');
 
 -- CreateEnum
 CREATE TYPE "BrandStyle" AS ENUM ('Tech', 'Fun', 'Fancy', 'Minimal', 'Brick & Mortar', 'Photo-based');

@@ -11,6 +11,7 @@ import { UserModule } from '../user/user.module';
 import { FileModule } from '../file/file.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { ContestModule } from '../contest/contest.module';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
 	imports: [
@@ -25,6 +26,7 @@ import { ContestModule } from '../contest/contest.module';
 		AuthModule,
 		UserModule,
 		ContestModule,
+		PaymentModule,
 	],
 })
 export class AppModule implements NestModule {

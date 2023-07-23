@@ -147,18 +147,11 @@ export class ContestService {
 			const { count }: { count: number } = await this.prisma.contest.createMany(
 				{ data: contests },
 			);
-			if (count)
-				return Promise.reject(
-					new BadRequestException(AppErrors.ERROR_OPENING_CONTEST),
-				);
 			return count;
 		} catch (e) {
-			throw new InternalServerErrorException(
-				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
-				{
-					cause: e,
-				},
-			);
+			throw new InternalServerErrorException(AppErrors.ERROR_OPENING_CONTEST, {
+				cause: e,
+			});
 		}
 	}
 
