@@ -15,4 +15,5 @@ export const AppErrors = {
 	INSUFFICIENT_FUNDS_TO_PAY: 'Insufficient funds to pay',
 	INTERNAL_SERVER_BANK_ERROR_TRY_AGAIN_LATER:
 		'Internal server bank error try again later',
+	OFFER_WITH_THIS_ID_DOES_NOT_EXISTS: 'Offer with this id does not exist',
 };

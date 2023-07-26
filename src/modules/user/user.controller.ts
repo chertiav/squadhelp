@@ -34,7 +34,7 @@ import {
 } from '../../common/dto/exception';
 import { JWTAuthGuard, RolesGuard } from '../../guards';
 import { UserService } from './user.service';
-import { UpdateFileInterceptor } from '../../interceptors';
+import { OneFileInterceptor } from '../../interceptors';
 import {
 	BalanceUserDto,
 	InfoUserDto,
@@ -72,7 +72,7 @@ export class UserController {
 		FileInterceptor('file', {
 			...imageStorage,
 		}),
-		UpdateFileInterceptor,
+		OneFileInterceptor,
 	)
 	@Version('1')
 	@Patch('update')
