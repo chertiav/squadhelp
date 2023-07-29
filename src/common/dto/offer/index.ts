@@ -1,10 +1,17 @@
 import { FileDto } from '../file';
 import { ApiProperty, IntersectionType, PickType } from '@nestjs/swagger';
 import { CustomerContestByIdResDto, QueryCreatorContestDto } from '../contest';
-import { IsNotEmpty, IsNumberString, IsString } from 'class-validator';
+import {
+	IsEmail,
+	IsEnum,
+	IsNotEmpty,
+	IsNumberString,
+	IsString,
+} from 'class-validator';
 import { OfferStatus } from '@prisma/client';
 import { InfoUserDto } from '../user';
 import { AppMessages } from '../../messages';
+import { OFFER_STATUS_COMMAND } from '../../enum';
 
 export class CreateOfferDto extends IntersectionType(
 	PickType(FileDto, ['file']),
@@ -50,7 +57,7 @@ class OfferUser extends IntersectionType(
 	rating: number;
 }
 
-export class CreateOfferDataDto extends IntersectionType(
+export class OfferDataDto extends IntersectionType(
 	PickType(CustomerContestByIdResDto, ['fileName', 'originalFileName']),
 	PickType(CreateOfferDto, ['text']),
 ) {
@@ -60,8 +67,11 @@ export class CreateOfferDataDto extends IntersectionType(
 		example: 1,
 	})
 	id: number;
+
+	@IsEnum(OfferStatus)
 	@ApiProperty({
 		description: 'Offer status',
+		enum: OfferStatus,
 		example: OfferStatus.pending,
 	})
 	@IsString()
@@ -78,7 +88,7 @@ export class CreateOfferResDto {
 	@ApiProperty({
 		description: 'Offer data',
 	})
-	offer: CreateOfferDataDto;
+	offer: OfferDataDto;
 
 	@ApiProperty({
 		description: 'Success message',
@@ -94,3 +104,65 @@ export class DeleteOfferResDto {
 	})
 	message: string;
 }
+
+export class SetOfferStatusDto {
+	@ApiProperty({
+		description: 'Contest id status command',
+		required: false,
+		example: '1',
+	})
+	contestId?: string;
+
+	@IsNotEmpty()
+	@IsEnum(OFFER_STATUS_COMMAND)
+	@ApiProperty({
+		description: 'Offer status command',
+		enum: OFFER_STATUS_COMMAND,
+		example: OFFER_STATUS_COMMAND.reject,
+	})
+	command: OFFER_STATUS_COMMAND;
+
+	@IsNotEmpty()
+	@ApiProperty({
+		description: 'Offer id',
+		example: '1',
+	})
+	offerId: string;
+
+	@ApiProperty({
+		description: 'Creator id',
+		required: false,
+		example: '3',
+	})
+	creatorId?: string;
+
+	@ApiProperty({
+		description: 'Contest order id',
+		example: '0099108a-080d-42e4-8c0a-a693d0c0e2c0',
+		required: false,
+	})
+	orderId?: string;
+
+	@ApiProperty({
+		description: 'Priority contest',
+		example: '1',
+		required: false,
+	})
+	priority?: string;
+
+	@ApiProperty({
+		description: 'The email address of the creator',
+		example: 'witcher@gmail.com',
+	})
+	@IsNotEmpty()
+	@IsEmail()
+	email: string;
+}
+
+export class OfferUpdateDto extends PickType(OfferDataDto, [
+	'id',
+	'text',
+	'originalFileName',
+	'fileName',
+	'status',
+]) {}

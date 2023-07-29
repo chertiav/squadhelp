@@ -1,9 +1,11 @@
 import {
 	Body,
 	Controller,
+	Delete,
 	HttpStatus,
 	Param,
 	ParseIntPipe,
+	Patch,
 	Post,
 	UploadedFile,
 	UseGuards,
@@ -38,10 +40,12 @@ import { JWTAuthGuard, RolesGuard } from '../../guards';
 import { imageStorage } from '../file/file.storage';
 import { OneFileInterceptor } from '../../interceptors';
 import {
-	CreateOfferDataDto,
+	OfferDataDto,
 	CreateOfferDto,
 	CreateOfferResDto,
 	DeleteOfferResDto,
+	SetOfferStatusDto,
+	OfferUpdateDto,
 } from '../../common/dto/offer';
 import { AppMessages } from '../../common/messages';
 
@@ -89,7 +93,7 @@ export class OfferController {
 		@UploadedFile() file: Express.Multer.File,
 		@Body() dto: CreateOfferDto,
 	): Promise<CreateOfferResDto> {
-		const offer: CreateOfferDataDto = await this.offerService.createOffer(
+		const offer: OfferDataDto = await this.offerService.createOffer(
 			userId,
 			dto,
 		);
@@ -123,12 +127,52 @@ export class OfferController {
 	@Roles(Role.creator, Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
-	@Post('delete/:id')
+	@Delete('delete/:id')
 	async delete(
 		@UserId() userId: number,
 		@UserRole() role: Role,
 		@Param('id', new ParseIntPipe()) id: number,
 	): Promise<DeleteOfferResDto> {
 		return this.offerService.deleteOffer(id, role, userId);
+	}
+
+	@ApiOperation({ description: 'Get all active offers' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionResDto,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionResDto,
+	})
+	@ApiForbiddenResponse({
+		description: 'Access denied message',
+		type: ForbiddenExceptionResDto,
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid request data message',
+		type: BadRequestExceptionResDto,
+	})
+	@ApiBody({
+		description:
+			'For the moderator, only three fields are filled: command, offerId, email. \n' +
+			'All fields are filled in for the customer: command, offerId, email, contestId,' +
+			'creatorId, orderId, priority',
+		type: SetOfferStatusDto,
+	})
+	@ApiOkResponse({
+		type: OfferUpdateDto,
+	})
+	@ApiCookieAuth()
+	@Roles(Role.customer, Role.moderator)
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@Version('1')
+	@Patch('set-status')
+	async setStatus(
+		@UserId() userId: number,
+		@UserRole() role: Role,
+		@Body() dto: SetOfferStatusDto,
+	): Promise<OfferUpdateDto> {
+		return this.offerService.setOfferStatus(dto, role, userId);
 	}
 }

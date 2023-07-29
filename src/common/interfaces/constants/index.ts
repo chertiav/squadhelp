@@ -77,3 +77,13 @@ export interface IOptionsGetCountActiveOffers {
 	};
 }
 export type IOptionsGetCountPendingOffers = IOptionsGetCountActiveOffers;
+
+//offer
+
+export interface ISelectFieldOffer {
+	id: boolean;
+	text: boolean;
+	originalFileName: boolean;
+	fileName: boolean;
+	status: boolean;
+}
