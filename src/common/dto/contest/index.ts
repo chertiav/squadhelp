@@ -202,7 +202,7 @@ export class QueryCreatorContestDto extends ContestStatusDto {
 
 	@IsNumber()
 	@ApiProperty({
-		description: 'Filter by contest id',
+		description: 'Contest id',
 		required: false,
 		example: '',
 	})

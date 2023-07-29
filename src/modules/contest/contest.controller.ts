@@ -43,7 +43,7 @@ import { Paginate, Roles, UserId, UserRole } from '../../decorators';
 import { RolesGuard } from '../../guards';
 import { IPagination } from '../../common/interfaces/pagination';
 import { fileStorage } from '../file/file.storage';
-import { UpdateFileInterceptor } from '../../interceptors';
+import { OneFileInterceptor } from '../../interceptors';
 import { AppMessages } from '../../common/messages';
 import {
 	LogoDataContestResDto,
@@ -329,7 +329,7 @@ export class ContestController {
 		FileInterceptor('file', {
 			...fileStorage,
 		}),
-		UpdateFileInterceptor,
+		OneFileInterceptor,
 	)
 	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)

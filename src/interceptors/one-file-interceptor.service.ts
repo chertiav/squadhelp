@@ -11,24 +11,28 @@ import { CommonConstants } from '../common/constants';
 import { fileNameEncode } from '../common/helpers';
 
 @Injectable()
-export class UpdateFileInterceptor implements NestInterceptor {
+export class OneFileInterceptor implements NestInterceptor {
 	intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
 		const ctx: HttpArgumentsHost = context.switchToHttp();
 		const req = ctx.getRequest();
+		const checkFileForAvatar: boolean =
+			!req.body?.industry && !req.body?.contestId;
+		const checkFileForContests: boolean =
+			req.body?.industry || req.body?.contestId;
 		if (req.body && req.file) {
-			if (!req.body?.industry) {
+			if (checkFileForAvatar) {
 				req.body.avatar = req.file.filename;
 			}
-			if (req.body?.industry) {
+			if (checkFileForContests) {
 				req.body.fileName = req.file.filename;
 				req.body.originalFileName = fileNameEncode(req.file.originalname);
 			}
 		}
 		if (req.body.deleteFileName && !req.file) {
-			if (!req.body?.industry) {
+			if (checkFileForAvatar) {
 				req.body.avatar = CommonConstants.DEFAULT_AVATAR_NAME;
 			}
-			if (req.body?.industry) {
+			if (checkFileForContests) {
 				req.body.originalFileName = null;
 				req.body.fileName = null;
 			}

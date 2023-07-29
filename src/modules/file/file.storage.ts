@@ -53,16 +53,20 @@ export const filterFile = (
 
 export const imageStorage: {
 	storage: StorageEngine;
+	limits: { fileSize: number };
 	fileFilter: (req, file, cb) => void;
 } = {
 	storage: storageFiles,
+	limits: { fileSize: 5242880 },
 	fileFilter: filterImage,
 };
 
 export const fileStorage: {
 	storage: StorageEngine;
+	limits: { fileSize: number };
 	fileFilter: (req, file, cb) => void;
 } = {
 	storage: storageFiles,
+	limits: { fileSize: 5242880 },
 	fileFilter: filterFile,
 };

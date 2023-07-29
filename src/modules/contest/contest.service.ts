@@ -8,12 +8,10 @@ import {
 	ContestStatus,
 	ContestType,
 	Prisma,
-	PrismaClient,
 	Role,
 } from '@prisma/client';
 
 import { PrismaService } from '../prisma/prisma.service';
-import { ITXClientDenyList } from '@prisma/client/runtime/library';
 import { AppErrors } from '../../common/errors';
 import { IPagination } from '../../common/interfaces/pagination';
 import { ContestConstants } from '../../common/constants';
@@ -173,10 +171,8 @@ export class ContestService {
 				);
 			const updateContest: CustomerContestByIdResDto =
 				await this.prisma.$transaction(
-					async (
-						prisma: Omit<PrismaClient, ITXClientDenyList>,
-					): Promise<CustomerContestByIdResDto> => {
-						return prisma.contest.update({
+					async (): Promise<CustomerContestByIdResDto> => {
+						return this.prisma.contest.update({
 							where: { id: contestId },
 							data: contestUpdateData,
 							select: {

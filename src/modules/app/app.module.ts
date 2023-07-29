@@ -12,6 +12,7 @@ import { FileModule } from '../file/file.module';
 import { TasksModule } from '../tasks/tasks.module';
 import { ContestModule } from '../contest/contest.module';
 import { PaymentModule } from '../payment/payment.module';
+import { OfferModule } from '../offer/offer.module';
 
 @Module({
 	imports: [
@@ -27,6 +28,7 @@ import { PaymentModule } from '../payment/payment.module';
 		UserModule,
 		ContestModule,
 		PaymentModule,
+		OfferModule,
 	],
 })
 export class AppModule implements NestModule {
