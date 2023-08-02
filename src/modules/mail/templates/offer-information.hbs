@@ -1,0 +1,34 @@
+<p>	{{ message }}, contest: </p>
+<div style='
+		display: flex;
+		flex-direction: row;
+		box-sizing: border-box;
+		margin: 15px 0;
+		color: #556da5;
+		font-size: 20px;'
+>
+	<span>Title: {{ title }}</span>
+	{{#if flagMailNotForCustomer}}
+		<span>, Customer: {{ firstName }} {{ lastName }}</span>
+	{{/if}}
+</div>
+	<div style='
+		display: flex;
+		flex-direction: row;
+		box-sizing: border-box;
+		width: min-content;
+		margin-top: 15px;
+		padding: 30px 40px;
+		background-color: #f9fafb;
+		border-radius: 10px;'
+	>
+		<span style= 'color: #556da5;font-size: 18px; width: max-content;'>
+			{{#if originalFileName}}
+				File width name: {{originalFileName}}
+			{{else}}
+				Text offer: {{ text }}
+			{{/if}}
+		</span>
+	</div>
+
+<p>If you did not request this email you can safely ignore it.</p>

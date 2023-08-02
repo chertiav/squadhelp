@@ -17,6 +17,7 @@ import {
 	ApiBody,
 	ApiConsumes,
 	ApiCookieAuth,
+	ApiExtraModels,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
@@ -24,6 +25,7 @@ import {
 	ApiResponse,
 	ApiTags,
 	ApiUnauthorizedResponse,
+	refs,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 
@@ -44,10 +46,12 @@ import {
 	CreateOfferDto,
 	CreateOfferResDto,
 	DeleteOfferResDto,
-	SetOfferStatusDto,
+	SetOfferStatusFromCustomerDto,
 	OfferUpdateDto,
+	SetOfferStatusFromModeratorDto,
 } from '../../common/dto/offer';
 import { AppMessages } from '../../common/messages';
+import { OfferConstants } from '../../common/constants';
 
 @ApiTags('offer')
 @Controller('offer')
@@ -153,12 +157,15 @@ export class OfferController {
 		description: 'Invalid request data message',
 		type: BadRequestExceptionResDto,
 	})
+	@ApiExtraModels(SetOfferStatusFromCustomerDto, SetOfferStatusFromModeratorDto)
 	@ApiBody({
-		description:
-			'For the moderator, only three fields are filled: command, offerId, email. \n' +
-			'All fields are filled in for the customer: command, offerId, email, contestId,' +
-			'creatorId, orderId, priority',
-		type: SetOfferStatusDto,
+		schema: {
+			anyOf: refs(
+				SetOfferStatusFromCustomerDto,
+				SetOfferStatusFromModeratorDto,
+			),
+		},
+		examples: OfferConstants.API_BODY_EXAMPLES_SET_STATUS,
 	})
 	@ApiOkResponse({
 		type: OfferUpdateDto,
@@ -171,7 +178,7 @@ export class OfferController {
 	async setStatus(
 		@UserId() userId: number,
 		@UserRole() role: Role,
-		@Body() dto: SetOfferStatusDto,
+		@Body() dto: SetOfferStatusFromCustomerDto | SetOfferStatusFromModeratorDto,
 	): Promise<OfferUpdateDto> {
 		return this.offerService.setOfferStatus(dto, role, userId);
 	}

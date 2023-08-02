@@ -8,4 +8,12 @@ export const AppMessages = {
 	MSG_MONEY_SEND_SUCCESSFULLY: 'Money sent successfully',
 	MSG_OFFER_CREATED: 'Offer created',
 	MSG_OFFER_DELETED: 'Offer deleted',
+	MSG_EMAIL_CREATE_OFFER_FOR_CUSTOMER: 'There is a new offer for your contest',
+	MSG_EMAIL_CREATE_OFFER_FOR_MODERATOR: 'There is a new proposal to consider ',
+	MSG_EMAIL_CUSTOMER_REJECT: 'Your offer has been rejected by the customer',
+	MSG_EMAIL_CUSTOMER_RESOLVE: 'Your offer has been resolve by the customer',
+	MSG_EMAIL_MODERATOR_REJECT: 'Your offer has been rejected by the moderator',
+	MSG_EMAIL_MODERATOR_ACTIVE_FOR_CREATOR:
+		'Your proposal has been approved by the moderator and sent to the creator of the contest for consideration',
+	MSG_EMAIL_MODERATOR_ACTIVE_FOR_CUSTOMER: 'Have an offer for your contest',
 };

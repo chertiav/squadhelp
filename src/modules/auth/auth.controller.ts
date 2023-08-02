@@ -78,6 +78,7 @@ export class AuthController {
 	@ApiBody({
 		description: 'User data for login in',
 		type: LoginAuthDto,
+		examples: AuthConstants.API_BODY_EXAMPLES_LOGIN,
 	})
 	@ApiForbiddenResponse({
 		description: 'Forbidden exception message',
@@ -114,7 +115,7 @@ export class AuthController {
 	})
 	@Version('1')
 	@Get('/login-check')
-	loginCheck(@Req() request): Promise<LoginCheckAuthResDto> {
+	loginCheck(@Req() request: any): Promise<LoginCheckAuthResDto> {
 		return request.user;
 	}
 

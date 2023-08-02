@@ -13,6 +13,7 @@ import { TasksModule } from '../tasks/tasks.module';
 import { ContestModule } from '../contest/contest.module';
 import { PaymentModule } from '../payment/payment.module';
 import { OfferModule } from '../offer/offer.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
 	imports: [
@@ -29,6 +30,7 @@ import { OfferModule } from '../offer/offer.module';
 		ContestModule,
 		PaymentModule,
 		OfferModule,
+		MailModule,
 	],
 })
 export class AppModule implements NestModule {
