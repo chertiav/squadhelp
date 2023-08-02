@@ -19,4 +19,6 @@ export const AppErrors = {
 	NOT_ENOUGH_RIGHTS: 'Not enough rights',
 	CANNOT_UPDATE_CONTEST: 'Cannot update Contest',
 	CANNOT_UPDATE_OFFER: 'Cannot update Offer',
+	MAIL_SENDING_ERROR: 'mail sending error',
+	THIS_FILE_DOES_NOT_EXIST: 'This file does not exist',
 };

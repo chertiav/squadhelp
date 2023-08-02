@@ -1,15 +1,23 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+	BadRequestException,
+	HttpException,
+	HttpStatus,
+	Injectable,
+	StreamableFile,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { join } from 'path';
 import * as fs from 'fs';
+import { join } from 'path';
+import { createReadStream } from 'fs';
+
+import { AppErrors } from '../../common/errors';
 
 @Injectable()
 export class FileService {
 	constructor(private readonly configService: ConfigService) {}
 
 	public removeFile(fileName: string): void {
-		const staticPath: string = this.configService.get<string>('staticPath');
-		const filePath: string = join(staticPath, 'files', fileName);
+		const filePath: string = this.getFilePath(fileName);
 		try {
 			if (fs.existsSync(filePath)) {
 				fs.unlinkSync(filePath);
@@ -17,5 +25,19 @@ export class FileService {
 		} catch (e) {
 			throw new HttpException(e.message, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	public getFile(fileName: string): StreamableFile | BadRequestException {
+		const filePath: string = this.getFilePath(fileName);
+		if (!fs.existsSync(filePath)) {
+			throw new BadRequestException(AppErrors.THIS_FILE_DOES_NOT_EXIST);
+		}
+		const file: fs.ReadStream = createReadStream(this.getFilePath(fileName));
+		return new StreamableFile(file);
+	}
+
+	private getFilePath(fileName: string): string {
+		const staticPath: string = this.configService.get<string>('staticPath');
+		return join(staticPath, 'files', fileName);
 	}
 }
