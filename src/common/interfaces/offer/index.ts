@@ -1,7 +1,7 @@
 import { ExamplesObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 
-export interface IDeleteOfferCheck {
-	fileName: string | null;
+export interface IOfferDataMail {
+	fileName?: string | null;
 	originalFileName: string | null;
 	text: string;
 	user: {
@@ -12,6 +12,23 @@ export interface IDeleteOfferCheck {
 		user: {
 			firstName: string;
 			lastName: string;
+		};
+	};
+}
+
+export interface ISelectOfferDataMail {
+	fileName?: boolean;
+	originalFileName: boolean;
+	text: boolean;
+	user: {
+		select: {
+			email: boolean;
+		};
+	};
+	contest: {
+		select: {
+			title: boolean;
+			user: { select: { firstName: boolean; lastName: boolean } };
 		};
 	};
 }

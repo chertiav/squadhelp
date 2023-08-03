@@ -14,6 +14,7 @@ import { ContestModule } from '../contest/contest.module';
 import { PaymentModule } from '../payment/payment.module';
 import { OfferModule } from '../offer/offer.module';
 import { MailModule } from '../mail/mail.module';
+import { RatingModule } from '../rating/rating.module';
 
 @Module({
 	imports: [
@@ -31,6 +32,7 @@ import { MailModule } from '../mail/mail.module';
 		PaymentModule,
 		OfferModule,
 		MailModule,
+		RatingModule,
 	],
 })
 export class AppModule implements NestModule {

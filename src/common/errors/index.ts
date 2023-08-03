@@ -21,4 +21,6 @@ export const AppErrors = {
 	CANNOT_UPDATE_OFFER: 'Cannot update Offer',
 	MAIL_SENDING_ERROR: 'mail sending error',
 	THIS_FILE_DOES_NOT_EXIST: 'This file does not exist',
+	CANNOT_MARK_OFFER: 'cannot mark offer',
+	CANNOT_UPDATE_MARK_ON_THIS_OFFER: 'cannot update mark on this offer',
 };

@@ -16,4 +16,6 @@ export const AppMessages = {
 	MSG_EMAIL_MODERATOR_ACTIVE_FOR_CREATOR:
 		'Your proposal has been approved by the moderator and sent to the creator of the contest for consideration',
 	MSG_EMAIL_MODERATOR_ACTIVE_FOR_CUSTOMER: 'Have an offer for your contest',
+	MSG_EMAIL_RATING: 'Rating changed by your suggestion',
+	MSG_RATING_CHANGE: 'Rating changed',
 };

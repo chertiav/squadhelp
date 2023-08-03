@@ -1,5 +1,29 @@
 import { ISelectFieldOffer } from '../interfaces/constants';
-import { IApiBodyExamplesSetStatus } from '../interfaces/offer';
+import {
+	IApiBodyExamplesSetStatus,
+	ISelectOfferDataMail,
+} from '../interfaces/offer';
+
+export const SELECT_FIELD_OFFER_DATA_MAIL: ISelectOfferDataMail = {
+	originalFileName: true,
+	text: true,
+	user: {
+		select: {
+			email: true,
+		},
+	},
+	contest: {
+		select: {
+			title: true,
+			user: { select: { firstName: true, lastName: true } },
+		},
+	},
+};
+
+export const SELECT_FIELD_DELETE_OFFER_DATA_MAIL_: ISelectOfferDataMail = {
+	fileName: true,
+	...SELECT_FIELD_OFFER_DATA_MAIL,
+};
 
 export const SELECT_FIELD_OFFER: ISelectFieldOffer = {
 	id: true,
