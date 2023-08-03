@@ -21,7 +21,7 @@ export const loggingError = (objectError: ILoggerBody): void => {
 		jsonObjectError + '\n',
 		(err: NodeJS.ErrnoException | null): void => {
 			if (err) {
-				console.log(`Error: ${err.message}`);
+				console.info(`Error append file: ${err.message}`);
 				return;
 			}
 		},

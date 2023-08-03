@@ -26,7 +26,7 @@ import {
 	User,
 } from '@prisma/client';
 import { AppMessages } from '../../common/messages';
-import { IDeleteOfferCheck } from '../../common/interfaces/offer';
+import { IOfferDataMail } from '../../common/interfaces/offer';
 import { OFFER_STATUS_COMMAND } from '../../common/enum';
 import { OfferConstants } from '../../common/constants';
 import { UserService } from '../user/user.service';
@@ -35,11 +35,27 @@ import { MailService } from '../mail/mail.service';
 @Injectable()
 export class OfferService {
 	constructor(
-		private readonly prisma: PrismaService,
+		private readonly prismaService: PrismaService,
 		private readonly fileService: FileService,
 		private readonly userService: UserService,
 		private readonly mailService: MailService,
 	) {}
+
+	public async findOneOffer(id: number, select: any): Promise<any> {
+		try {
+			return this.prismaService.offer.findFirst({
+				where: { id },
+				select,
+			});
+		} catch (e) {
+			throw new InternalServerErrorException(
+				AppErrors.THIS_FILE_DOES_NOT_EXIST,
+				{
+					cause: e,
+				},
+			);
+		}
+	}
 
 	public async createOffer(
 		userId: number,
@@ -47,7 +63,7 @@ export class OfferService {
 	): Promise<OfferDataDto> {
 		try {
 			const { contest, ...offerData }: OfferDataForMailDto =
-				await this.prisma.offer.create({
+				await this.prismaService.offer.create({
 					data: { userId, ...dto, contestId: +dto.contestId },
 					select: {
 						...OfferConstants.SELECT_FIELD_OFFER,
@@ -69,10 +85,11 @@ export class OfferService {
 						},
 					},
 				});
-			const emailModerator: Partial<User> = await this.prisma.user.findFirst({
-				where: { role: Role.moderator },
-				select: { email: true },
-			});
+			const emailModerator: Partial<User> =
+				await this.prismaService.user.findFirst({
+					where: { role: Role.moderator },
+					select: { email: true },
+				});
 			await this.mailService.sendMail(
 				'chertiav@gmail.com',
 				// emailModerator.email,
@@ -105,42 +122,26 @@ export class OfferService {
 			| { id: number; userId?: undefined }
 			| { id: number; userId: number } =
 			role === Role.moderator ? { id } : { id, userId };
-		const offerData: IDeleteOfferCheck = await this.prisma.offer.findFirst({
+		const offerData: IOfferDataMail = await this.prismaService.offer.findFirst({
 			where: {
 				...predicateWhere,
 				NOT: { status: OfferStatus.won },
 			},
-			select: {
-				fileName: true,
-				originalFileName: true,
-				text: true,
-				user: {
-					select: {
-						email: true,
-					},
-				},
-				contest: {
-					select: {
-						title: true,
-						user: { select: { firstName: true, lastName: true } },
-					},
-				},
-			},
+			select: OfferConstants.SELECT_FIELD_DELETE_OFFER_DATA_MAIL_,
 		});
 		if (!offerData)
 			throw new BadRequestException(
 				AppErrors.OFFER_WITH_THIS_ID_DOES_NOT_EXISTS,
 			);
-		await this.prisma.$transaction(async (): Promise<void> => {
+		await this.prismaService.$transaction(async (): Promise<void> => {
 			const predicateWhere:
 				| { id: number; userId?: undefined }
 				| { id: number; userId: number } =
 				role === Role.moderator ? { id } : { id, userId };
-			const deleteOffer: { count: number } = await this.prisma.offer.deleteMany(
-				{
+			const deleteOffer: { count: number } =
+				await this.prismaService.offer.deleteMany({
 					where: { ...predicateWhere, NOT: { status: OfferStatus.won } },
-				},
-			);
+				});
 			if (!deleteOffer.count)
 				throw new InternalServerErrorException(
 					AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
@@ -176,7 +177,7 @@ export class OfferService {
 			!(dto instanceof SetOfferStatusFromModeratorDto)
 		) {
 			const changePermissionCheck: Contest =
-				await this.prisma.contest.findFirst({
+				await this.prismaService.contest.findFirst({
 					where: { userId, id: +dto.contestId, status: ContestStatus.active },
 				});
 			if (!changePermissionCheck)
@@ -210,7 +211,7 @@ export class OfferService {
 		emailCreator: string,
 	): Promise<OfferUpdateDto> {
 		const { contest, ...dataOffer }: OfferUpdateOneDto =
-			await this.prisma.offer.update({
+			await this.prismaService.offer.update({
 				data: { status: OfferStatus.rejected },
 				where: { id: offerId },
 				select: {
@@ -249,65 +250,66 @@ export class OfferService {
 		offerId: number,
 		priority: number,
 	): Promise<OfferUpdateDto> {
-		return this.prisma.$transaction(async (): Promise<OfferUpdateDto> => {
-			const contestsByOrder: Contest[] = await this.changeContestStatus(
-				contestId,
-				priority,
-				orderId,
-			);
-			const finishedContestPrize: Contest[] = contestsByOrder.filter(
-				(contest: Contest): boolean =>
-					contest.id === contestId && contest.status === ContestStatus.finished,
-			);
-			await this.userService.updateUser(
-				creatorId,
-				{ balance: { increment: finishedContestPrize[0].price } },
-				null,
-			);
-			const updatedOffers: OfferUpdateManyDto[] = await this.changeOffersStatus(
-				offerId,
-				contestId,
-			);
-			for (const offer of updatedOffers) {
-				if (offer.status === OfferStatus.rejected) {
-					await this.mailService.sendMail(
-						// offer.email,
-						'chertiav@gmail.com',
-						AppMessages.MSG_EMAIL_CUSTOMER_REJECT,
-						{
-							text: offer.text,
-							originalFileName: offer.originalFileName,
-							title: offer.title,
-							firstName: offer.first_name,
-							lastName: offer.last_name,
-						},
-					);
+		return this.prismaService.$transaction(
+			async (): Promise<OfferUpdateDto> => {
+				const contestsByOrder: Contest[] = await this.changeContestStatus(
+					contestId,
+					priority,
+					orderId,
+				);
+				const finishedContestPrize: Contest[] = contestsByOrder.filter(
+					(contest: Contest): boolean =>
+						contest.id === contestId &&
+						contest.status === ContestStatus.finished,
+				);
+				await this.userService.updateUser(
+					creatorId,
+					{ balance: { increment: finishedContestPrize[0].price } },
+					null,
+				);
+				const updatedOffers: OfferUpdateManyDto[] =
+					await this.changeOffersStatus(offerId, contestId);
+				for (const offer of updatedOffers) {
+					if (offer.status === OfferStatus.rejected) {
+						await this.mailService.sendMail(
+							// offer.email,
+							'chertiav@gmail.com',
+							AppMessages.MSG_EMAIL_CUSTOMER_REJECT,
+							{
+								text: offer.text,
+								originalFileName: offer.originalFileName,
+								title: offer.title,
+								firstName: offer.first_name,
+								lastName: offer.last_name,
+							},
+						);
+					}
 				}
-			}
-			const {
-				email,
-				title,
-				first_name,
-				last_name,
-				...offerData
-			}: OfferUpdateManyDto = updatedOffers.filter(
-				(Offer: OfferUpdateManyDto) =>
-					Offer.status === OfferStatus.won && Offer.id === offerId,
-			)[0];
-			await this.mailService.sendMail(
-				// email,
-				'chertiav@gmail.com',
-				AppMessages.MSG_EMAIL_CUSTOMER_RESOLVE,
-				{
-					text: offerData.text,
-					originalFileName: offerData.originalFileName,
+				const {
+					email,
 					title,
-					firstName: first_name,
-					lastName: last_name,
-				},
-			);
-			return offerData;
-		});
+					first_name,
+					last_name,
+					...offerData
+				}: OfferUpdateManyDto = updatedOffers.filter(
+					(Offer: OfferUpdateManyDto) =>
+						Offer.status === OfferStatus.won && Offer.id === offerId,
+				)[0];
+				await this.mailService.sendMail(
+					// email,
+					'chertiav@gmail.com',
+					AppMessages.MSG_EMAIL_CUSTOMER_RESOLVE,
+					{
+						text: offerData.text,
+						originalFileName: offerData.originalFileName,
+						title,
+						firstName: first_name,
+						lastName: last_name,
+					},
+				);
+				return offerData;
+			},
+		);
 	}
 
 	private async activeOffer(
@@ -316,7 +318,7 @@ export class OfferService {
 		emailCustomer: string,
 	): Promise<OfferUpdateDto> {
 		const { contest, ...dataOffer }: OfferUpdateOneDto =
-			await this.prisma.offer.update({
+			await this.prismaService.offer.update({
 				data: { status: OfferStatus.active },
 				where: { id: offerId },
 				select: {
@@ -362,7 +364,7 @@ export class OfferService {
 		orderId: string,
 	): Promise<Contest[]> {
 		try {
-			return this.prisma.$queryRaw<Contest[]>`
+			return this.prismaService.$queryRaw<Contest[]>`
 		    UPDATE public.contests SET "status" =
 					CASE
 		      	WHEN "id"=${contestId} 
@@ -385,7 +387,7 @@ export class OfferService {
 		contestId: number,
 	): Promise<OfferUpdateManyDto[]> {
 		try {
-			return this.prisma.$queryRaw<OfferUpdateManyDto[]>`
+			return this.prismaService.$queryRaw<OfferUpdateManyDto[]>`
 		    UPDATE offers SET "status" =
 					CASE
 		      	WHEN "id"=${offerId} THEN "OfferStatus"'won'

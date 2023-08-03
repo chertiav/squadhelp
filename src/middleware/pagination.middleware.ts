@@ -11,7 +11,7 @@ export class PaginationMiddleware implements NestMiddleware {
 		next: (error?: Error | any) => void,
 	): Promise<void> {
 		const { limit, page }: { limit: number; page: number } = req.query;
-		const result: Joi.ValidationResult = await paginateSchema.validate({
+		const result: Joi.ValidationResult = paginateSchema.validate({
 			limit,
 			page,
 		});
@@ -19,7 +19,6 @@ export class PaginationMiddleware implements NestMiddleware {
 		!valid
 			? (req.pagination = { take: 8, skip: 0 })
 			: (req.pagination = { take: +limit, skip: +page * 8 });
-		console.log(req.pagination);
 		next();
 	}
 }
