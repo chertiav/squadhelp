@@ -11,9 +11,14 @@ import {
 	DeleteOfferResDto,
 	OfferDataDto,
 	OfferDataForMailDto,
+	OfferDto,
+	OfferForModeratorDto,
+	OfferForModeratorRsDto,
+	OffersResDto,
 	OfferUpdateDto,
 	OfferUpdateManyDto,
 	OfferUpdateOneDto,
+	QueryGetOffersDto,
 	SetOfferStatusFromCustomerDto,
 	SetOfferStatusFromModeratorDto,
 } from '../../common/dto/offer';
@@ -22,6 +27,7 @@ import {
 	Contest,
 	ContestStatus,
 	OfferStatus,
+	Prisma,
 	Role,
 	User,
 } from '@prisma/client';
@@ -31,6 +37,7 @@ import { OFFER_STATUS_COMMAND } from '../../common/enum';
 import { OfferConstants } from '../../common/constants';
 import { UserService } from '../user/user.service';
 import { MailService } from '../mail/mail.service';
+import { IPagination } from '../../common/interfaces/pagination';
 
 @Injectable()
 export class OfferService {
@@ -40,6 +47,33 @@ export class OfferService {
 		private readonly userService: UserService,
 		private readonly mailService: MailService,
 	) {}
+
+	public async getOffers(
+		id: number,
+		role: Role,
+		query: QueryGetOffersDto,
+		pagination: IPagination,
+	): Promise<OffersResDto | OfferForModeratorRsDto> {
+		const predicates: Prisma.OfferFindManyArgs = this.createOffersPredicates(
+			id,
+			role,
+			+query.contestId,
+		);
+		const [offers, totalCount]: [
+			offers: OfferDto[] | OfferForModeratorDto[],
+			totalCount: number,
+		] = await this.prismaService.$transaction([
+			this.prismaService.offer.findMany({
+				...predicates,
+				...pagination,
+			}),
+			this.prismaService.offer.count({ where: predicates.where }),
+		]);
+		return {
+			offers,
+			totalCount,
+		};
+	}
 
 	public async findOneOffer(id: number, select: any): Promise<any> {
 		try {
@@ -408,5 +442,89 @@ export class OfferService {
 				cause: e,
 			});
 		}
+	}
+
+	private createOffersPredicates(
+		id: number,
+		role: Role,
+		contestId: number,
+	): Prisma.OfferFindManyArgs {
+		const predicates: {
+			where: Prisma.OfferWhereInput;
+			orderBy: Prisma.OfferOrderByWithRelationInput[];
+			select: Prisma.OfferSelect;
+		} = {
+			where: { contestId },
+			orderBy: [{ status: 'desc' }, { id: 'desc' }],
+			select: {
+				id: true,
+				text: true,
+				fileName: true,
+				originalFileName: true,
+				status: true,
+			},
+		};
+		if (role === Role.moderator) {
+			Object.assign(predicates.where, {
+				status: OfferStatus.pending,
+			});
+			Object.assign(predicates.select, {
+				user: {
+					select: {
+						email: true,
+					},
+				},
+				contest: {
+					select: {
+						user: {
+							select: {
+								email: true,
+							},
+						},
+					},
+				},
+			});
+		} else {
+			Object.assign(predicates.select, {
+				user: {
+					select: {
+						id: true,
+						firstName: true,
+						lastName: true,
+						email: true,
+						avatar: true,
+						rating: true,
+					},
+				},
+			});
+		}
+		if (role === Role.creator) {
+			Object.assign(predicates.where, {
+				userId: id,
+			});
+			Object.assign(predicates.select, {
+				ratings: {
+					select: {
+						mark: true,
+					},
+				},
+			});
+		}
+		if (role === Role.customer) {
+			Object.assign(predicates.where, {
+				status: OfferStatus.active,
+			});
+			Object.assign(predicates.select, {
+				ratings: {
+					where: {
+						userId: id,
+					},
+					select: {
+						mark: true,
+					},
+				},
+			});
+		}
+		return predicates;
 	}
 }
