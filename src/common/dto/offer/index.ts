@@ -5,14 +5,18 @@ import {
 	IsEmail,
 	IsEnum,
 	IsNotEmpty,
+	IsNumber,
 	IsNumberString,
 	IsString,
 	IsUUID,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
 import { OfferStatus } from '@prisma/client';
 import { InfoUserDto } from '../user';
 import { AppMessages } from '../../messages';
 import { OFFER_STATUS_COMMAND } from '../../enum';
+import { QueryPaginationDto } from '../pagination';
 
 export class CreateOfferDto extends IntersectionType(
 	PickType(FileDto, ['file']),
@@ -203,4 +207,112 @@ export class OfferUpdateManyDto extends OfferUpdateDto {
 	title: string;
 	first_name: string;
 	last_name: string;
+}
+
+export class QueryGetOffersDto extends IntersectionType(
+	PickType(QueryPaginationDto, ['limit', 'page']),
+	PickType(QueryCreatorContestDto, ['contestId']),
+) {
+	@IsNumber()
+	@Type(() => Number)
+	@ApiProperty({
+		required: true,
+	})
+	contestId: number;
+}
+
+class UserOffers extends IntersectionType(
+	PickType(InfoUserDto, ['id', 'firstName', 'lastName', 'email', 'avatar']),
+) {
+	@ApiProperty({
+		description: 'User rating',
+		example: '2.583333333333333',
+	})
+	rating: number;
+}
+
+class UserOffersForModerator extends PickType(UserOffers, ['email']) {}
+
+class UserRatings {
+	@ApiProperty({ description: 'User ratings', example: 1.5 })
+	mark: number;
+}
+
+export class OfferDto {
+	@ApiProperty({ description: 'Offer ID', example: 1 })
+	id: number;
+
+	@ApiProperty({
+		description: 'Text offer',
+		example: 'I am learning',
+	})
+	text: string;
+
+	@ApiProperty({
+		description: 'File name',
+		example: null,
+	})
+	fileName: string | null;
+
+	@ApiProperty({
+		description: 'Original file name',
+		example: null,
+	})
+	originalFileName: string | null;
+
+	@ApiProperty({
+		description: 'Offer status',
+		enum: Object.values(OfferStatus),
+		example: OfferStatus.active,
+	})
+	status: OfferStatus;
+
+	@ApiProperty()
+	user?: UserOffers;
+
+	@ApiProperty({
+		isArray: true,
+		type: UserRatings,
+	})
+	ratings?: UserRatings[];
+}
+
+export class OfferForModeratorDto extends PickType(OfferDto, [
+	'id',
+	'text',
+	'fileName',
+	'originalFileName',
+	'status',
+]) {
+	@ApiProperty({ description: 'Creator email' })
+	user?: UserOffersForModerator;
+
+	@ApiProperty({ description: 'Customer email' })
+	contest?: {
+		user?: UserOffersForModerator;
+	};
+}
+
+export class OffersResDto {
+	@ApiProperty({
+		description: 'List of offers for creator or customer',
+		isArray: true,
+		type: OfferDto,
+	})
+	offers: OfferDto[];
+
+	@ApiProperty({ description: 'Number of offers', example: 1 })
+	totalCount: number;
+}
+
+export class OfferForModeratorRsDto {
+	@ApiProperty({
+		description: 'List of offers for moderator',
+		isArray: true,
+		type: OfferForModeratorDto,
+	})
+	offers: OfferForModeratorDto[];
+
+	@ApiProperty({ description: 'Number of offers', example: 1 })
+	totalCount: number;
 }

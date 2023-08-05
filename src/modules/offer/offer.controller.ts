@@ -2,11 +2,13 @@ import {
 	Body,
 	Controller,
 	Delete,
+	Get,
 	HttpStatus,
 	Param,
 	ParseIntPipe,
 	Patch,
 	Post,
+	Query,
 	UploadedFile,
 	UseGuards,
 	UseInterceptors,
@@ -36,7 +38,7 @@ import {
 	InternalServerErrorExceptionResDto,
 	UnauthorizedExceptionResDto,
 } from '../../common/dto/exception';
-import { Roles, UserId, UserRole } from '../../decorators';
+import { Paginate, Roles, UserId, UserRole } from '../../decorators';
 import { Role } from '@prisma/client';
 import { JWTAuthGuard, RolesGuard } from '../../guards';
 import { imageStorage } from '../file/file.storage';
@@ -49,9 +51,13 @@ import {
 	SetOfferStatusFromCustomerDto,
 	OfferUpdateDto,
 	SetOfferStatusFromModeratorDto,
+	QueryGetOffersDto,
+	OffersResDto,
+	OfferForModeratorRsDto,
 } from '../../common/dto/offer';
 import { AppMessages } from '../../common/messages';
 import { OfferConstants } from '../../common/constants';
+import { IPagination } from '../../common/interfaces/pagination';
 
 @ApiTags('offer')
 @Controller('offer')
@@ -140,7 +146,7 @@ export class OfferController {
 		return this.offerService.deleteOffer(id, role, userId);
 	}
 
-	@ApiOperation({ description: 'Get all active offers' })
+	@ApiOperation({ description: 'Set offer status' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
 		type: UnauthorizedExceptionResDto,
@@ -181,5 +187,56 @@ export class OfferController {
 		@Body() dto: SetOfferStatusFromCustomerDto | SetOfferStatusFromModeratorDto,
 	): Promise<OfferUpdateDto> {
 		return this.offerService.setOfferStatus(dto, role, userId);
+	}
+
+	@ApiOperation({ description: 'Get all active offers' })
+	@ApiUnauthorizedResponse({
+		description: 'Unauthorized message',
+		type: UnauthorizedExceptionResDto,
+	})
+	@ApiInternalServerErrorResponse({
+		description: 'Internal server error message',
+		type: InternalServerErrorExceptionResDto,
+	})
+	@ApiForbiddenResponse({
+		description: 'Access denied message',
+		type: ForbiddenExceptionResDto,
+	})
+	@ApiBadRequestResponse({
+		description: 'Invalid request data message',
+		type: BadRequestExceptionResDto,
+	})
+	@ApiExtraModels(OffersResDto, OfferForModeratorRsDto)
+	@ApiOkResponse({
+		description: 'Contests data',
+		content: {
+			'application/json': {
+				schema: { oneOf: refs(OffersResDto, OfferForModeratorRsDto) },
+				examples: {
+					customer: {
+						value: OfferConstants.API_OK_RESPONSE_EXAMPLES_GET_OFFERS,
+					},
+					creator: {
+						value: OfferConstants.API_OK_RESPONSE_EXAMPLES_GET_OFFERS,
+					},
+					moderator: {
+						value: OfferConstants.API_OK_RESPONSE_EXAMPLES_GET_OFFERS_MODERATOR,
+					},
+				},
+			},
+		},
+	})
+	@ApiCookieAuth()
+	@Roles(Role.customer, Role.moderator, Role.creator)
+	@UseGuards(JWTAuthGuard, RolesGuard)
+	@Version('1')
+	@Get('')
+	async getAllOffers(
+		@UserId() id: number,
+		@UserRole() role: Role,
+		@Paginate() pagination: IPagination,
+		@Query() query: QueryGetOffersDto,
+	): Promise<OffersResDto | OfferForModeratorRsDto> {
+		return this.offerService.getOffers(id, role, query, pagination);
 	}
 }

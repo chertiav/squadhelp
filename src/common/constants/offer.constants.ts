@@ -3,6 +3,7 @@ import {
 	IApiBodyExamplesSetStatus,
 	ISelectOfferDataMail,
 } from '../interfaces/offer';
+import { OfferForModeratorRsDto, OffersResDto } from '../dto/offer';
 
 export const SELECT_FIELD_OFFER_DATA_MAIL: ISelectOfferDataMail = {
 	originalFileName: true,
@@ -54,3 +55,51 @@ export const API_BODY_EXAMPLES_SET_STATUS: IApiBodyExamplesSetStatus = {
 		},
 	},
 };
+
+export const API_OK_RESPONSE_EXAMPLES_GET_OFFERS: OffersResDto = {
+	offers: [
+		{
+			id: 1,
+			text: 'I am learning',
+			fileName: null,
+			originalFileName: null,
+			status: 'rejected',
+			user: {
+				id: 3,
+				firstName: 'Geralt',
+				lastName: 'Witcher',
+				email: 'witcher@gmail.com',
+				avatar: 'anon.png',
+				rating: 2.583333333333333,
+			},
+			ratings: [
+				{
+					mark: 1.5,
+				},
+			],
+		},
+	],
+	totalCount: 1,
+};
+
+export const API_OK_RESPONSE_EXAMPLES_GET_OFFERS_MODERATOR: OfferForModeratorRsDto =
+	{
+		offers: [
+			{
+				id: 6,
+				text: 'I am learning',
+				fileName: null,
+				originalFileName: null,
+				status: 'pending',
+				user: {
+					email: 'witcher@gmail.com',
+				},
+				contest: {
+					user: {
+						email: 'ragnar@gmail.com',
+					},
+				},
+			},
+		],
+		totalCount: 1,
+	};
