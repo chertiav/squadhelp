@@ -1,57 +1,19 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 //=================================================================
-import {
-	seedSelectData,
-	seedBankData,
-	seedUserData,
-	seedContestData,
-	seedUserDataCreator,
-	seedUserDataCustomer,
-	seedOffersData,
-	seedUserDataCustomer_2,
-	seedUserDataCreator_2,
-} from './data';
+import { seedSelectData, seedBankData, seedUserData } from './data';
 
 const prisma = new PrismaClient();
 
-async function main() {
+async function main(): Promise<void> {
 	const salt: number | string = await bcrypt.genSalt();
-	const hashPassword = async (password): Promise<string> =>
+	const hashPassword = async (password: string): Promise<string> =>
 		await bcrypt.hash(password, salt);
 
 	await prisma.user.create({
 		data: {
 			...seedUserData,
 			password: await hashPassword(seedUserData.password),
-		},
-	});
-
-	await prisma.user.create({
-		data: {
-			...seedUserDataCustomer,
-			password: await hashPassword(seedUserDataCustomer.password),
-		},
-	});
-
-	await prisma.user.create({
-		data: {
-			...seedUserDataCreator,
-			password: await hashPassword(seedUserDataCreator.password),
-		},
-	});
-
-	await prisma.user.create({
-		data: {
-			...seedUserDataCustomer_2,
-			password: await hashPassword(seedUserDataCustomer_2.password),
-		},
-	});
-
-	await prisma.user.create({
-		data: {
-			...seedUserDataCreator_2,
-			password: await hashPassword(seedUserDataCreator_2.password),
 		},
 	});
 
@@ -62,21 +24,13 @@ async function main() {
 	await prisma.selectBox.createMany({
 		data: seedSelectData,
 	});
-
-	await prisma.contest.createMany({
-		data: seedContestData,
-	});
-
-	await prisma.offer.createMany({
-		data: seedOffersData,
-	});
 }
 
 main()
-	.catch((e) => {
+	.catch((e): void => {
 		console.error(e);
 		process.exit(1);
 	})
-	.finally(async () => {
+	.finally(async (): Promise<void> => {
 		await prisma.$disconnect();
 	});

@@ -7,5 +7,4 @@ export interface IConfiguration {
 	smtpPort: string;
 	smtpUser: string;
 	smtpPassword: string;
-	apiUrl: string;
 }

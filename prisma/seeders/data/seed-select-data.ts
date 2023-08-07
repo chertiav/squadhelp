@@ -1,4 +1,4 @@
-export const seedSelectData = [
+export const seedSelectData: { type: string; describe: string }[] = [
 	{ type: 'typeOfName', describe: 'Company' },
 	{ type: 'typeOfName', describe: 'Product' },
 	{ type: 'typeOfName', describe: 'Project' },

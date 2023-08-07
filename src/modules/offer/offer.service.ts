@@ -125,8 +125,7 @@ export class OfferService {
 					select: { email: true },
 				});
 			await this.mailService.sendMail(
-				'chertiav@gmail.com',
-				// emailModerator.email,
+				emailModerator.email,
 				AppMessages.MSG_EMAIL_CREATE_OFFER_FOR_MODERATOR,
 				{
 					text: offerData.text,
@@ -263,8 +262,7 @@ export class OfferService {
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
 			);
 		await this.mailService.sendMail(
-			'chertiav@gmail.com',
-			// emailCreator,
+			emailCreator,
 			AppMessages.MSG_EMAIL_CUSTOMER_REJECT,
 			{
 				text: dataOffer.text,
@@ -306,8 +304,7 @@ export class OfferService {
 				for (const offer of updatedOffers) {
 					if (offer.status === OfferStatus.rejected) {
 						await this.mailService.sendMail(
-							// offer.email,
-							'chertiav@gmail.com',
+							offer.email,
 							AppMessages.MSG_EMAIL_CUSTOMER_REJECT,
 							{
 								text: offer.text,
@@ -330,8 +327,7 @@ export class OfferService {
 						Offer.status === OfferStatus.won && Offer.id === offerId,
 				)[0];
 				await this.mailService.sendMail(
-					// email,
-					'chertiav@gmail.com',
+					email,
 					AppMessages.MSG_EMAIL_CUSTOMER_RESOLVE,
 					{
 						text: offerData.text,
@@ -366,8 +362,7 @@ export class OfferService {
 				},
 			});
 		await this.mailService.sendMail(
-			// emailCreator,
-			'chertiav@gmail.com',
+			emailCreator,
 			AppMessages.MSG_EMAIL_CUSTOMER_RESOLVE,
 			{
 				text: dataOffer.text,
@@ -378,8 +373,7 @@ export class OfferService {
 			},
 		);
 		await this.mailService.sendMail(
-			// emailCustomer,
-			'chertiav@gmail.com',
+			emailCustomer,
 			AppMessages.MSG_EMAIL_MODERATOR_ACTIVE_FOR_CUSTOMER,
 			{
 				text: dataOffer.text,

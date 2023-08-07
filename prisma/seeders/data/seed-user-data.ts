@@ -1,46 +1,17 @@
 import { Role } from '@prisma/client';
 
-export const seedUserData = {
+export const seedUserData: {
+	firstName: string;
+	lastName: string;
+	displayName: string;
+	email: string;
+	password: string;
+	role: Role;
+} = {
 	firstName: 'John',
 	lastName: 'Snow',
 	displayName: 'johnsnow',
-	email: 'johnsnow@gmail.com',
+	email: 'johnsnowtest@gmail.com',
 	password: 'Johnsnow123+',
 	role: Role.moderator,
-};
-
-export const seedUserDataCustomer = {
-	firstName: 'Ragnar',
-	lastName: 'Lodbrok',
-	displayName: 'ragnarek',
-	email: 'ragnar@gmail.com',
-	password: 'Ragnar123+',
-	role: Role.customer,
-};
-
-export const seedUserDataCreator = {
-	firstName: 'Geralt',
-	lastName: 'Witcher',
-	displayName: 'geraltofrivia',
-	email: 'witcher@gmail.com',
-	password: 'Geralt123+',
-	role: Role.creator,
-};
-
-export const seedUserDataCustomer_2 = {
-	firstName: 'Dean',
-	lastName: 'Winchester',
-	displayName: 'supernatural',
-	email: 'supernatural@gmail.com',
-	password: 'Winchester123+',
-	role: Role.customer,
-};
-
-export const seedUserDataCreator_2 = {
-	firstName: 'Sam',
-	lastName: 'Witcher',
-	displayName: 'sam_supernatural',
-	email: 'sam_supernatural@gmail.com',
-	password: 'Sam_winchester123+',
-	role: Role.creator,
 };

@@ -51,6 +51,7 @@ export class AuthController {
 	@ApiBody({
 		description: 'User data',
 		type: RegisterAuthDto,
+		examples: AuthConstants.API_BODY_EXAMPLES_REGISTER,
 	})
 	@ApiCreatedResponse({
 		description: 'Successfully created user data and  information message',
