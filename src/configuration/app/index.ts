@@ -11,5 +11,4 @@ export default (): IConfiguration => ({
 	smtpPort: env.SMTP_PORT,
 	smtpUser: env.SMTP_USER,
 	smtpPassword: env.SMTP_PASSWORD,
-	apiUrl: env.API_URL,
 });
