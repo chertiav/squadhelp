@@ -12,8 +12,9 @@ import { JwtService } from '@nestjs/jwt';
 import { DEFAULT_AVATAR_NAME } from '../../src/common/constants/common.constants';
 import { CreateUserDto, PublicUserDto } from '../../src/common/dto/user';
 import { IJwtPayload } from '../../src/common/interfaces/auth';
+import { CommonConstants } from '../../src/common/constants';
 
-describe('Auth Service', () => {
+describe('Auth Service', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let authService: AuthService;
@@ -30,7 +31,7 @@ describe('Auth Service', () => {
 		await app.init();
 	});
 
-	beforeEach(async () => {
+	beforeEach(async (): Promise<void> => {
 		const salt: string | number = await bcrypt.genSalt();
 		const hashPassword: string = await bcrypt.hash(userMockData.password, salt);
 		await prisma.user.create({
@@ -81,9 +82,8 @@ describe('Auth Service', () => {
 		expect(isNumber(user.id)).toBe(true);
 		expect(user.displayName).toBe(userMockData.displayName);
 		expect(user.role).toBe(userMockData.role);
+		expect(user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(checkToken.user.id).toBe(user.id);
-		expect(user.displayName).toBe(user.displayName);
-		expect(user.role).toBe(user.role);
 		expect(isNumber(checkToken.iat)).toBe(true);
 		expect(isNumber(checkToken.exp)).toBe(true);
 	});
@@ -100,6 +100,7 @@ describe('Auth Service', () => {
 		expect(isNumber(user.id)).toBe(true);
 		expect(user.displayName).toBe(userMockData.displayName);
 		expect(user.role).toBe(userMockData.role);
+		expect(user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(checkToken.user.id).toBe(user.id);
 		expect(checkToken.user.displayName).toBe(user.displayName);
 		expect(checkToken.user.role).toBe(user.role);

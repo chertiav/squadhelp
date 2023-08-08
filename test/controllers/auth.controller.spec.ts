@@ -9,6 +9,7 @@ import { AppMessages } from '../../src/common/messages';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AppModule } from '../../src/modules/app/app.module';
 import { userMockData } from '../mockData';
+import { CommonConstants } from '../../src/common/constants';
 
 describe('Auth Controller', () => {
 	let app: INestApplication;
@@ -45,12 +46,13 @@ describe('Auth Controller', () => {
 		expect(isNumber(response.body.user.id)).toBe(true);
 		expect(response.body.user.displayName).toBe(userMockData.displayName);
 		expect(response.body.user.role).toBe(userMockData.role);
+		expect(response.body.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(response.body.message).toBe(AppMessages.MSG_REGISTER);
 		expect(response.status).toBe(HttpStatus.CREATED);
 	});
 
 	it('should login user', async (): Promise<void> => {
-		await prisma.user.create({
+		const testUser = await prisma.user.create({
 			data: { ...userMockData, password: hashPassword },
 		});
 
@@ -58,9 +60,10 @@ describe('Auth Controller', () => {
 			.post('/auth/login')
 			.send({ email: userMockData.email, password: userMockData.password });
 
-		expect(isNumber(response.body.user.id)).toBe(true);
+		expect(response.body.user.id).toBe(testUser.id);
 		expect(response.body.user.displayName).toBe(userMockData.displayName);
 		expect(response.body.user.role).toBe(userMockData.role);
+		expect(response.body.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(response.body.message).toBe(AppMessages.MSG_LOGGED_IN);
 		expect(response.status).toBe(HttpStatus.OK);
 	});
@@ -80,6 +83,7 @@ describe('Auth Controller', () => {
 
 		expect(isNumber(loginCheck.body.id)).toBe(true);
 		expect(loginCheck.body.displayName).toBe(userMockData.displayName);
+		expect(loginCheck.body.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(loginCheck.body.role).toBe(userMockData.role);
 	});
 
