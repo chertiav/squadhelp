@@ -11,7 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../src/modules/token/token.service';
 import { IJwtPayload } from '../../src/common/interfaces/auth';
 
-describe('Token Service', () => {
+describe('Token Service', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let tokenService: TokenService;
