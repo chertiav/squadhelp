@@ -32,13 +32,15 @@ describe('Auth Service', (): void => {
 	});
 
 	beforeEach(async (): Promise<void> => {
-		const salt: string | number = await bcrypt.genSalt();
-		const hashPassword: string = await bcrypt.hash(
-			userMockDataCustomer.password,
-			salt,
-		);
+		const hashPassword = async (password: string): Promise<string> => {
+			const salt: number | string = await bcrypt.genSalt();
+			return bcrypt.hash(password, salt);
+		};
 		await prisma.user.create({
-			data: { ...userMockDataCustomer, password: hashPassword },
+			data: {
+				...userMockDataCustomer,
+				password: await hashPassword(userMockDataCustomer.password),
+			},
 		});
 	});
 
