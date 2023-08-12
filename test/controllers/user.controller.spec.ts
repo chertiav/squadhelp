@@ -7,8 +7,8 @@ import * as cookieParser from 'cookie-parser';
 import * as request from 'supertest';
 
 import {
-	userMockDataCreator,
-	userMockDataCustomer,
+	userMockDataFirstCreator,
+	userMockDataFirstCustomer,
 	userUpdateMockData,
 } from '../mockData';
 import { AppModule } from '../../src/modules/app/app.module';
@@ -40,12 +40,12 @@ describe('User Controller', (): void => {
 		await prisma.user.createMany({
 			data: [
 				{
-					...userMockDataCustomer,
-					password: await hashPassword(userMockDataCustomer.password),
+					...userMockDataFirstCustomer,
+					password: await hashPassword(userMockDataFirstCustomer.password),
 				},
 				{
-					...userMockDataCreator,
-					password: await hashPassword(userMockDataCreator.password),
+					...userMockDataFirstCreator,
+					password: await hashPassword(userMockDataFirstCreator.password),
 				},
 			],
 		});
@@ -55,7 +55,7 @@ describe('User Controller', (): void => {
 		await prisma.user.deleteMany({
 			where: {
 				email: {
-					in: [userMockDataCustomer.email, userMockDataCreator.email],
+					in: [userMockDataFirstCustomer.email, userMockDataFirstCreator.email],
 				},
 			},
 		});
@@ -70,8 +70,8 @@ describe('User Controller', (): void => {
 		const login: request.Response = await request(app.getHttpServer())
 			.post('/auth/login')
 			.send({
-				email: userMockDataCustomer.email,
-				password: userMockDataCustomer.password,
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
@@ -83,8 +83,8 @@ describe('User Controller', (): void => {
 		expect(response.body.user.lastName).toBe(userUpdateMockData.lastName);
 		expect(response.body.user.avatar).toBe(userUpdateMockData.avatar);
 		expect(isNumber(response.body.user.id)).toBe(true);
-		expect(response.body.user.role).toBe(userMockDataCustomer.role);
-		expect(response.body.user.email).toBe(userMockDataCustomer.email);
+		expect(response.body.user.role).toBe(userMockDataFirstCustomer.role);
+		expect(response.body.user.email).toBe(userMockDataFirstCustomer.email);
 		expect(response.body.message).toBe(
 			AppMessages.MSG_USER_INFORMATION_UPDATED,
 		);
@@ -95,20 +95,20 @@ describe('User Controller', (): void => {
 		const login: request.Response = await request(app.getHttpServer())
 			.post('/auth/login')
 			.send({
-				email: userMockDataCustomer.email,
-				password: userMockDataCustomer.password,
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get('/user/info')
 			.set('Cookie', login.headers['set-cookie']);
 
-		expect(response.body.firstName).toBe(userMockDataCustomer.firstName);
-		expect(response.body.lastName).toBe(userMockDataCustomer.lastName);
+		expect(response.body.firstName).toBe(userMockDataFirstCustomer.firstName);
+		expect(response.body.lastName).toBe(userMockDataFirstCustomer.lastName);
 		expect(response.body.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(isNumber(response.body.id)).toBe(true);
-		expect(response.body.role).toBe(userMockDataCustomer.role);
-		expect(response.body.email).toBe(userMockDataCustomer.email);
+		expect(response.body.role).toBe(userMockDataFirstCustomer.role);
+		expect(response.body.email).toBe(userMockDataFirstCustomer.email);
 		expect(response.status).toBe(HttpStatus.OK);
 	});
 
@@ -116,8 +116,8 @@ describe('User Controller', (): void => {
 		const login: request.Response = await request(app.getHttpServer())
 			.post('/auth/login')
 			.send({
-				email: userMockDataCreator.email,
-				password: userMockDataCreator.password,
+				email: userMockDataFirstCreator.email,
+				password: userMockDataFirstCreator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())

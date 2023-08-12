@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 //=================================================================
-import { seedSelectData, seedBankData, seedUserData } from './data';
+import { seedSelectData, seedBankData, seedUserDataModerator } from './data';
 
 const prisma = new PrismaClient();
 
@@ -12,8 +12,8 @@ async function main(): Promise<void> {
 
 	await prisma.user.create({
 		data: {
-			...seedUserData,
-			password: await hashPassword(seedUserData.password),
+			...seedUserDataModerator,
+			password: await hashPassword(seedUserDataModerator.password),
 		},
 	});
 

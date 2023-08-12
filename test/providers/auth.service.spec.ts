@@ -7,7 +7,7 @@ import { User } from '@prisma/client';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { AppModule } from '../../src/modules/app/app.module';
-import { userMockDataCustomer } from '../mockData';
+import { userMockDataFirstCustomer } from '../mockData';
 import { JwtService } from '@nestjs/jwt';
 import { DEFAULT_AVATAR_NAME } from '../../src/common/constants/common.constants';
 import { CreateUserDto, PublicUserDto } from '../../src/common/dto/user';
@@ -38,14 +38,16 @@ describe('Auth Service', (): void => {
 		};
 		await prisma.user.create({
 			data: {
-				...userMockDataCustomer,
-				password: await hashPassword(userMockDataCustomer.password),
+				...userMockDataFirstCustomer,
+				password: await hashPassword(userMockDataFirstCustomer.password),
 			},
 		});
 	});
 
 	afterEach(async (): Promise<void> => {
-		await prisma.user.delete({ where: { email: userMockDataCustomer.email } });
+		await prisma.user.delete({
+			where: { email: userMockDataFirstCustomer.email },
+		});
 	});
 
 	afterAll(async (): Promise<void> => {
@@ -55,22 +57,22 @@ describe('Auth Service', (): void => {
 
 	it('should validate user', async (): Promise<void> => {
 		const user: User = await authService.validateUser(
-			userMockDataCustomer.email,
-			userMockDataCustomer.password,
+			userMockDataFirstCustomer.email,
+			userMockDataFirstCustomer.password,
 		);
 
 		const passwordValid: boolean = await bcrypt.compare(
-			userMockDataCustomer.password,
+			userMockDataFirstCustomer.password,
 			user.password,
 		);
 
 		expect(isNumber(user.id)).toBe(true);
-		expect(user.firstName).toBe(userMockDataCustomer.firstName);
-		expect(user.lastName).toBe(userMockDataCustomer.lastName);
-		expect(user.displayName).toBe(userMockDataCustomer.displayName);
+		expect(user.firstName).toBe(userMockDataFirstCustomer.firstName);
+		expect(user.lastName).toBe(userMockDataFirstCustomer.lastName);
+		expect(user.displayName).toBe(userMockDataFirstCustomer.displayName);
 		expect(passwordValid).toBe(true);
 		expect(user.avatar).toBe(DEFAULT_AVATAR_NAME);
-		expect(user.role).toBe(userMockDataCustomer.role);
+		expect(user.role).toBe(userMockDataFirstCustomer.role);
 		expect(+user.balance).toBe(0);
 		expect(+user.rating).toBe(0);
 		expect(user.createdAt).toBeInstanceOf(Date);
@@ -78,15 +80,17 @@ describe('Auth Service', (): void => {
 	});
 
 	it('should register user', async (): Promise<void> => {
-		await prisma.user.delete({ where: { email: userMockDataCustomer.email } });
+		await prisma.user.delete({
+			where: { email: userMockDataFirstCustomer.email },
+		});
 
 		const { user, token }: { user: PublicUserDto; token: string } =
-			await authService.register(userMockDataCustomer as CreateUserDto);
+			await authService.register(userMockDataFirstCustomer as CreateUserDto);
 		const checkToken: IJwtPayload = jwtService.verify(token);
 
 		expect(isNumber(user.id)).toBe(true);
-		expect(user.displayName).toBe(userMockDataCustomer.displayName);
-		expect(user.role).toBe(userMockDataCustomer.role);
+		expect(user.displayName).toBe(userMockDataFirstCustomer.displayName);
+		expect(user.role).toBe(userMockDataFirstCustomer.role);
 		expect(user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(checkToken.user.id).toBe(user.id);
 		expect(isNumber(checkToken.iat)).toBe(true);
@@ -96,15 +100,15 @@ describe('Auth Service', (): void => {
 	it('should login user', async (): Promise<void> => {
 		const { user, token }: { user: PublicUserDto; token: string } =
 			await authService.login({
-				email: userMockDataCustomer.email,
-				password: userMockDataCustomer.password,
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
 			});
 
 		const checkToken: IJwtPayload = jwtService.verify(token);
 
 		expect(isNumber(user.id)).toBe(true);
-		expect(user.displayName).toBe(userMockDataCustomer.displayName);
-		expect(user.role).toBe(userMockDataCustomer.role);
+		expect(user.displayName).toBe(userMockDataFirstCustomer.displayName);
+		expect(user.role).toBe(userMockDataFirstCustomer.role);
 		expect(user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(checkToken.user.id).toBe(user.id);
 		expect(checkToken.user.displayName).toBe(user.displayName);

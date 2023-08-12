@@ -135,7 +135,7 @@ export class ContestController {
 		return this.contestService.getDataNewContest(contestType);
 	}
 
-	@ApiOperation({ description: 'Get customer contest' })
+	@ApiOperation({ description: 'Get contests' })
 	@ApiUnauthorizedResponse({
 		description: 'Unauthorized message',
 		type: UnauthorizedExceptionResDto,
