@@ -1,7 +1,6 @@
 import { CreateUserDto, UpdateUserDto } from '../../src/common/dto/user';
 import {
 	BrandStyle,
-	Contest,
 	ContestStatus,
 	ContestType,
 	Industry,
@@ -20,7 +19,7 @@ import {
 	QueryModeratorContestDto,
 	TagLineContestUpdateDto,
 } from '../../src/common/dto/contest';
-import { Decimal } from '@prisma/client/runtime/library';
+import { ICreatContest } from '../../src/common/interfaces/contest';
 
 export const userMockDataFirstCustomer: CreateUserDto = {
 	firstName: 'Ragnar',
@@ -66,7 +65,7 @@ export const userUpdateMockData: UpdateUserDto = {
 	deleteFileName: '',
 };
 
-export const contestMockDataFirstCustomer: Partial<Contest>[] = [
+export const contestMockDataFirstCustomer: ICreatContest[] = [
 	{
 		contestType: ContestType.name,
 		fileName: null,
@@ -81,7 +80,7 @@ export const contestMockDataFirstCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '0099108a-080d-42e4-8c0a-a693d0c0e2c0',
 		userId: null,
@@ -100,7 +99,7 @@ export const contestMockDataFirstCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: 'd4026df1-78c2-46f5-9432-b32275ff5cbb',
 		userId: null,
@@ -119,7 +118,7 @@ export const contestMockDataFirstCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '6f6a173c-b998-4e35-be85-054b6a995279',
 		userId: null,
@@ -138,7 +137,7 @@ export const contestMockDataFirstCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.finished,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: 'a96e7f14-65cf-44ad-a9ad-546837e80790',
 		userId: null,
@@ -157,14 +156,14 @@ export const contestMockDataFirstCustomer: Partial<Contest>[] = [
 		typeOfTagline: StyleName.Classic,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '2b5d8aa9-1a5c-407c-b9b6-aa366cedd23a',
 		userId: null,
 	},
 ];
 
-export const contestMockDataSecondCustomer: Partial<Contest>[] = [
+export const contestMockDataSecondCustomer: ICreatContest[] = [
 	{
 		contestType: ContestType.name,
 		fileName: null,
@@ -179,7 +178,7 @@ export const contestMockDataSecondCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '3a8ec870-57ea-415f-9e7e-8258e3ef7b46',
 		userId: null,
@@ -198,7 +197,7 @@ export const contestMockDataSecondCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '124f0c9b-d510-4eb4-afa2-fb9f8e38349f',
 		userId: null,
@@ -217,7 +216,7 @@ export const contestMockDataSecondCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '5049c3e4-e575-4547-b516-d6db413527c4',
 		userId: null,
@@ -236,7 +235,7 @@ export const contestMockDataSecondCustomer: Partial<Contest>[] = [
 		typeOfTagline: TypeOfTagline.Classic,
 		status: ContestStatus.pending,
 		brandStyle: null,
-		price: new Decimal(100),
+		price: 100,
 		priority: 2,
 		orderId: '5049c3e4-e575-4547-b516-d6db413527c4',
 		userId: null,
@@ -255,7 +254,7 @@ export const contestMockDataSecondCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.pending,
 		brandStyle: BrandStyle.Tech,
-		price: new Decimal(100),
+		price: 100,
 		priority: 3,
 		orderId: '5049c3e4-e575-4547-b516-d6db413527c4',
 		userId: null,
@@ -274,7 +273,7 @@ export const contestMockDataSecondCustomer: Partial<Contest>[] = [
 		typeOfTagline: null,
 		status: ContestStatus.active,
 		brandStyle: BrandStyle.Tech,
-		price: new Decimal(100),
+		price: 100,
 		priority: 1,
 		orderId: '5cfeb361-4d68-40a0-9c7b-077995e250fc',
 		userId: null,
@@ -507,3 +506,56 @@ export const updateContestTypeLogo: LogoContestUpdateDto = {
 	brandStyle: BrandStyle.Minimal,
 	nameVenture: 'update name venture',
 };
+
+export const createOneContest: ICreatContest[] = [
+	{
+		contestType: ContestType.name,
+		title: 'Company Name example',
+		industry: Industry.CreativeAgency,
+		focusOfWork: 'What does your company',
+		targetCustomer: 'Tell us about your customers',
+		typeOfName: TypeOfName.Company,
+		styleName: StyleName.Classic,
+		status: ContestStatus.active,
+		userId: 0,
+		priority: 1,
+		orderId: '5cfeb361-4d68-40a0-9c7b-123456e250fc',
+		price: 100,
+	},
+];
+
+export const createTwoContests: ICreatContest[] = [
+	...createOneContest,
+	{
+		contestType: ContestType.tagline,
+		title: 'Tagline example',
+		industry: Industry.Biotech,
+		focusOfWork: 'What does your company',
+		targetCustomer: 'Tell us about your customers',
+		nameVenture: 'Name venture',
+		typeOfTagline: TypeOfTagline.Fun,
+		status: ContestStatus.pending,
+		userId: 0,
+		priority: 2,
+		orderId: '5cfeb361-4d68-40a0-9c7b-123456e250fc',
+		price: 100,
+	},
+];
+
+export const createThreeContests: ICreatContest[] = [
+	...createTwoContests,
+	{
+		contestType: ContestType.logo,
+		title: 'Logo example',
+		industry: Industry.Builders,
+		focusOfWork: 'What does your company',
+		targetCustomer: 'Tell us about your customers',
+		nameVenture: 'Name venture',
+		brandStyle: BrandStyle.Tech,
+		status: ContestStatus.pending,
+		userId: 0,
+		priority: 3,
+		orderId: '5cfeb361-4d68-40a0-9c7b-123456e250fc',
+		price: 100,
+	},
+];

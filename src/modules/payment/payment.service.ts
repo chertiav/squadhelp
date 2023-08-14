@@ -16,10 +16,7 @@ import {
 	TaglineCreateContestPayDto,
 } from '../../common/dto/payment';
 import { AppErrors } from '../../common/errors';
-import {
-	ICreatContest,
-	ICreateBulkContest,
-} from '../../common/interfaces/contest';
+import { ICreatContest } from '../../common/interfaces/contest';
 import { PayConstants } from './../../common/constants';
 import { UserService } from '../user/user.service';
 import { BalanceUserDto } from '../../common/dto/user';
@@ -35,7 +32,7 @@ export class PaymentService {
 	public async payment(id: number, dto: PayDto): Promise<number> {
 		const { number, cvc, expiry, sum, contests }: PayDto = dto;
 		await this.verifyCard(number, cvc, expiry, sum);
-		const dataContests: ICreateBulkContest = this.createDataForCreateContests(
+		const dataContests: ICreatContest[] = this.createDataForCreateContests(
 			id,
 			contests,
 		);
@@ -119,7 +116,7 @@ export class PaymentService {
 			throw new BadRequestException(AppErrors.INSUFFICIENT_FUNDS_TO_PAY);
 	}
 
-	private createDataForCreateContests(id, contests): ICreateBulkContest {
+	private createDataForCreateContests(id, contests): ICreatContest[] {
 		const orderId: string = uuid.v4();
 		contests.map(
 			(

@@ -3,8 +3,8 @@ import {
 	ContestStatus,
 	ContestType,
 	Industry,
-	Prisma,
 	StyleName,
+	TypeOfName,
 	TypeOfTagline,
 } from '@prisma/client';
 
@@ -17,7 +17,7 @@ export interface ICreatContest {
 	contestType: ContestType;
 	title?: string;
 	industry?: Industry;
-	typeOfName?: string;
+	typeOfName?: TypeOfName;
 	styleName?: StyleName;
 	brandStyle?: BrandStyle;
 	typeOfTagline?: TypeOfTagline;
@@ -31,10 +31,6 @@ export interface ICreatContest {
 	priority: number;
 	orderId: string;
 	userId: number;
-}
-
-export interface ICreateBulkContest extends Prisma.ContestCreateManyInput {
-	contests: ICreatContest[];
 }
 
 export interface ICharacteristicsDataContest {

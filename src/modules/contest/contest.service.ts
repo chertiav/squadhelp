@@ -37,7 +37,7 @@ import {
 } from '../../common/dto/contest';
 import {
 	ICharacteristicsDataContest,
-	ICreateBulkContest,
+	ICreatContest,
 	IQueryDataContest,
 } from '../../common/interfaces/contest';
 import {
@@ -140,7 +140,7 @@ export class ContestService {
 		return contest;
 	}
 
-	public async createContests(contests: ICreateBulkContest): Promise<number> {
+	public async createContests(contests: ICreatContest[]): Promise<number> {
 		try {
 			const { count }: { count: number } = await this.prisma.contest.createMany(
 				{ data: contests },

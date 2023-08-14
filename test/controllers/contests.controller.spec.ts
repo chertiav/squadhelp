@@ -43,12 +43,13 @@ import {
 import { seedUserDataModerator } from '../../prisma/seeders/data';
 import { AppMessages } from '../../src/common/messages';
 import { ContestDto } from '../../src/common/dto/contest';
+import { ICreatContest } from '../../src/common/interfaces/contest';
 
 describe('Contest controller', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let dataMockOffers: Offer[];
-	let dataMockContests: Contest[];
+	let dataMockContests: { contests: ICreatContest[] };
 	let userIdFirstCustomer: { id: number };
 	let userIdSecondCustomer: { id: number };
 	let userIdFirstCreator: { id: number };
@@ -111,29 +112,31 @@ describe('Contest controller', (): void => {
 			select: { id: true },
 		});
 
-		const seedMockDataContestsFirstCustomer: Contest[] =
+		const seedMockDataContestsFirstCustomer: ICreatContest[] =
 			contestMockDataFirstCustomer.map(
-				(contest: Contest): Contest => ({
+				(contest: ICreatContest): ICreatContest => ({
 					...contest,
 					userId: userIdFirstCustomer.id,
 				}),
 			);
 
-		const seedMockDataContestsSecondCustomer: Contest[] =
+		const seedMockDataContestsSecondCustomer: ICreatContest[] =
 			contestMockDataSecondCustomer.map(
-				(contest: Contest): Contest => ({
+				(contest: ICreatContest): ICreatContest => ({
 					...contest,
 					userId: userIdSecondCustomer.id,
 				}),
 			);
 
-		dataMockContests = [
-			...seedMockDataContestsFirstCustomer,
-			...seedMockDataContestsSecondCustomer,
-		];
+		dataMockContests = {
+			contests: [
+				...seedMockDataContestsFirstCustomer,
+				...seedMockDataContestsSecondCustomer,
+			],
+		};
 
 		await prisma.contest.createMany({
-			data: dataMockContests,
+			data: dataMockContests.contests,
 		});
 
 		dataIdContests = await prisma.contest.findMany({
@@ -198,7 +201,7 @@ describe('Contest controller', (): void => {
 			},
 		});
 		dataMockOffers = [];
-		dataMockContests = [];
+		dataMockContests.contests = [];
 		dataIdContests = [];
 		userIdFirstCustomer = { id: null };
 		userIdSecondCustomer = { id: null };
