@@ -50,7 +50,9 @@ export const createPredicatesAllContests = (
 			? [ContestStatus.active]
 			: !(query instanceof QueryModeratorContestDto) &&
 			  query.status === ('all' as ContestStatus)
-			? [ContestStatus.active, ContestStatus.finished]
+			? role === Role.creator
+				? [ContestStatus.active, ContestStatus.finished]
+				: [ContestStatus.active, ContestStatus.finished, ContestStatus.pending]
 			: !(query instanceof QueryModeratorContestDto) && [query.status];
 	Object.assign(predicates.where, { status: { in: status } });
 	if (role === Role.customer) {

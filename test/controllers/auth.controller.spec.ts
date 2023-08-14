@@ -8,7 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { AppMessages } from '../../src/common/messages';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AppModule } from '../../src/modules/app/app.module';
-import { userMockDataCustomer } from '../mockData';
+import { userMockDataFirstCustomer } from '../mockData';
 import { CommonConstants } from '../../src/common/constants';
 
 describe('Auth Controller', (): void => {
@@ -16,7 +16,7 @@ describe('Auth Controller', (): void => {
 	let prisma: PrismaService;
 	const salt: string | number = bcrypt.genSaltSync();
 	const hashPassword: string = bcrypt.hashSync(
-		userMockDataCustomer.password,
+		userMockDataFirstCustomer.password,
 		salt,
 	);
 
@@ -33,7 +33,9 @@ describe('Auth Controller', (): void => {
 	});
 
 	afterEach(async (): Promise<void> => {
-		await prisma.user.delete({ where: { email: userMockDataCustomer.email } });
+		await prisma.user.delete({
+			where: { email: userMockDataFirstCustomer.email },
+		});
 	});
 
 	afterAll(async (): Promise<void> => {
@@ -44,13 +46,13 @@ describe('Auth Controller', (): void => {
 	it('should create user', async (): Promise<void> => {
 		const response: request.Response = await request(app.getHttpServer())
 			.post('/auth/register')
-			.send(userMockDataCustomer);
+			.send(userMockDataFirstCustomer);
 
 		expect(isNumber(response.body.user.id)).toBe(true);
 		expect(response.body.user.displayName).toBe(
-			userMockDataCustomer.displayName,
+			userMockDataFirstCustomer.displayName,
 		);
-		expect(response.body.user.role).toBe(userMockDataCustomer.role);
+		expect(response.body.user.role).toBe(userMockDataFirstCustomer.role);
 		expect(response.body.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(response.body.message).toBe(AppMessages.MSG_REGISTER);
 		expect(response.status).toBe(HttpStatus.CREATED);
@@ -58,21 +60,21 @@ describe('Auth Controller', (): void => {
 
 	it('should login user', async (): Promise<void> => {
 		const testUser = await prisma.user.create({
-			data: { ...userMockDataCustomer, password: hashPassword },
+			data: { ...userMockDataFirstCustomer, password: hashPassword },
 		});
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post('/auth/login')
 			.send({
-				email: userMockDataCustomer.email,
-				password: userMockDataCustomer.password,
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
 			});
 
 		expect(response.body.user.id).toBe(testUser.id);
 		expect(response.body.user.displayName).toBe(
-			userMockDataCustomer.displayName,
+			userMockDataFirstCustomer.displayName,
 		);
-		expect(response.body.user.role).toBe(userMockDataCustomer.role);
+		expect(response.body.user.role).toBe(userMockDataFirstCustomer.role);
 		expect(response.body.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
 		expect(response.body.message).toBe(AppMessages.MSG_LOGGED_IN);
 		expect(response.status).toBe(HttpStatus.OK);
@@ -80,14 +82,14 @@ describe('Auth Controller', (): void => {
 
 	it('should login check', async (): Promise<void> => {
 		await prisma.user.create({
-			data: { ...userMockDataCustomer, password: hashPassword },
+			data: { ...userMockDataFirstCustomer, password: hashPassword },
 		});
 
 		const login: request.Response = await request(app.getHttpServer())
 			.post('/auth/login')
 			.send({
-				email: userMockDataCustomer.email,
-				password: userMockDataCustomer.password,
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
 			});
 
 		const loginCheck: request.Response = await request(app.getHttpServer())
@@ -95,21 +97,23 @@ describe('Auth Controller', (): void => {
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isNumber(loginCheck.body.id)).toBe(true);
-		expect(loginCheck.body.displayName).toBe(userMockDataCustomer.displayName);
+		expect(loginCheck.body.displayName).toBe(
+			userMockDataFirstCustomer.displayName,
+		);
 		expect(loginCheck.body.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
-		expect(loginCheck.body.role).toBe(userMockDataCustomer.role);
+		expect(loginCheck.body.role).toBe(userMockDataFirstCustomer.role);
 	});
 
 	it('should logout', async (): Promise<void> => {
 		await prisma.user.create({
-			data: { ...userMockDataCustomer, password: hashPassword },
+			data: { ...userMockDataFirstCustomer, password: hashPassword },
 		});
 
 		const login: request.Response = await request(app.getHttpServer())
 			.post('/auth/login')
 			.send({
-				email: userMockDataCustomer.email,
-				password: userMockDataCustomer.password,
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())

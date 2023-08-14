@@ -6,7 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AppModule } from '../../src/modules/app/app.module';
-import { userMockDataCustomer } from '../mockData';
+import { userMockDataFirstCustomer } from '../mockData';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from '../../src/modules/token/token.service';
 import { IJwtPayload } from '../../src/common/interfaces/auth';
@@ -29,7 +29,9 @@ describe('Token Service', (): void => {
 	});
 
 	afterEach(async (): Promise<void> => {
-		await prisma.user.delete({ where: { email: userMockDataCustomer.email } });
+		await prisma.user.delete({
+			where: { email: userMockDataFirstCustomer.email },
+		});
 	});
 
 	afterAll(async (): Promise<void> => {
@@ -40,11 +42,11 @@ describe('Token Service', (): void => {
 	it('should generate JwtToken', async (): Promise<void> => {
 		const salt: string | number = await bcrypt.genSalt();
 		const hashPassword: string = await bcrypt.hash(
-			userMockDataCustomer.password,
+			userMockDataFirstCustomer.password,
 			salt,
 		);
 		const user: User = await prisma.user.create({
-			data: { ...userMockDataCustomer, password: hashPassword },
+			data: { ...userMockDataFirstCustomer, password: hashPassword },
 		});
 		const token: string = await tokenService.generateJwtToken({
 			id: user.id,

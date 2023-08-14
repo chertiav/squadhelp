@@ -59,7 +59,7 @@ export const API_BODY_EXAMPLES_REGISTER: IApiBodyExamplesRegister = {
 		value: {
 			firstName: 'Dean',
 			lastName: 'Winchester',
-			displayName: 'supernatural',
+			displayName: 'dean',
 			email: 'supernaturaltest@gmail.com',
 			password: 'Winchester123+',
 			role: Role.customer,
@@ -69,7 +69,7 @@ export const API_BODY_EXAMPLES_REGISTER: IApiBodyExamplesRegister = {
 		value: {
 			firstName: 'Geralt',
 			lastName: 'Witcher',
-			displayName: 'geraltofrivia',
+			displayName: 'witcher',
 			email: 'witchertest@gmail.com',
 			password: 'Geralt123+',
 			role: Role.creator,
@@ -78,8 +78,8 @@ export const API_BODY_EXAMPLES_REGISTER: IApiBodyExamplesRegister = {
 	creator_2: {
 		value: {
 			firstName: 'Sam',
-			lastName: 'Witcher',
-			displayName: 'sam_supernatural',
+			lastName: 'Winchester',
+			displayName: 'sam',
 			email: 'sam_supernaturaltest@gmail.com',
 			password: 'Sam_winchester123+',
 			role: Role.creator,

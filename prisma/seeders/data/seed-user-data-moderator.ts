@@ -1,6 +1,6 @@
 import { Role } from '@prisma/client';
 
-export const seedUserData: {
+export const seedUserDataModerator: {
 	firstName: string;
 	lastName: string;
 	displayName: string;
