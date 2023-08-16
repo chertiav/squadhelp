@@ -1,7 +1,12 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+	HttpStatus,
+	INestApplication,
+	ValidationPipe,
+	VersioningType,
+} from '@nestjs/common';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
-import { isArray, isObject, useContainer } from 'class-validator';
+import { isArray, isObject, isUUID, useContainer } from 'class-validator';
 import * as bcrypt from 'bcrypt';
 import * as cookieParser from 'cookie-parser';
 import * as request from 'supertest';
@@ -44,6 +49,7 @@ import { seedUserDataModerator } from '../../prisma/seeders/data';
 import { AppMessages } from '../../src/common/messages';
 import { ContestDto } from '../../src/common/dto/contest';
 import { ICreatContest } from '../../src/common/interfaces/contest';
+import { join } from 'path';
 
 describe('Contest controller', (): void => {
 	let app: INestApplication;
@@ -65,6 +71,7 @@ describe('Contest controller', (): void => {
 		useContainer(app.select(AppModule), { fallbackOnErrors: true });
 		app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 		app.use(cookieParser());
+		app.enableVersioning({ type: VersioningType.URI });
 		await app.init();
 	});
 
@@ -216,14 +223,14 @@ describe('Contest controller', (): void => {
 
 	it(`should get data for create contest ${ContestType.name}`, async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest/start/${ContestType.name}`)
+			.get(`/v1/contest/start/${ContestType.name}`)
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isArray(response.body.industry)).toBe(true);
@@ -238,14 +245,14 @@ describe('Contest controller', (): void => {
 
 	it(`should get data for create contest ${ContestType.logo}`, async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest/start/${ContestType.logo}`)
+			.get(`/v1/contest/start/${ContestType.logo}`)
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isArray(response.body.industry)).toBe(true);
@@ -260,14 +267,14 @@ describe('Contest controller', (): void => {
 
 	it(`should get data for create contest ${ContestType.tagline}`, async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest/start/${ContestType.tagline}`)
+			.get(`/v1/contest/start/${ContestType.tagline}`)
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isArray(response.body.industry)).toBe(true);
@@ -280,14 +287,14 @@ describe('Contest controller', (): void => {
 
 	it(`should get contests for customer, status: all`, async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataSecondCustomer.email,
 				password: userMockDataSecondCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest`)
+			.get(`/v1/contest`)
 			.set('Cookie', login.headers['set-cookie'])
 			.query(queryGetContestsCustomerAll);
 
@@ -361,14 +368,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest`)
+			.get(`/v1/contest`)
 			.set('Cookie', login.headers['set-cookie'])
 			.query(queryGetContestsCustomerActive);
 
@@ -433,14 +440,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCreator.email,
 				password: userMockDataFirstCreator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest`)
+			.get(`/v1/contest`)
 			.set('Cookie', login.headers['set-cookie'])
 			.query(queryGetContestsCreatorAll);
 
@@ -507,14 +514,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCreator.email,
 				password: userMockDataFirstCreator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest`)
+			.get(`/v1/contest`)
 			.set('Cookie', login.headers['set-cookie'])
 			.query(queryGetContestsCreatorActive);
 
@@ -588,14 +595,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: seedUserDataModerator.email,
 				password: seedUserDataModerator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest`)
+			.get(`/v1/contest`)
 			.set('Cookie', login.headers['set-cookie'])
 			.query(queryGetContestsModeratorAll);
 
@@ -653,14 +660,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest/${dataContest.id}`)
+			.get(`/v1/contest/${dataContest.id}`)
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isObject(response.body)).toBe(true);
@@ -719,14 +726,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCreator.email,
 				password: userMockDataFirstCreator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest/${dataContest.id}`)
+			.get(`/v1/contest/${dataContest.id}`)
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isObject(response.body)).toBe(true);
@@ -812,14 +819,14 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: seedUserDataModerator.email,
 				password: seedUserDataModerator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get(`/contest/${dataContest.id}`)
+			.get(`/v1/contest/${dataContest.id}`)
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isObject(response.body)).toBe(true);
@@ -864,6 +871,8 @@ describe('Contest controller', (): void => {
 	});
 
 	it(`should update contest, type: ${ContestType.name}`, async (): Promise<void> => {
+		const fileName = 'sample.pdf';
+		const fileFirstContest: string = join(__dirname, '../mockImages', fileName);
 		const dataContest: Contest = dataIdContests.filter(
 			(dataContest: Contest): boolean =>
 				dataContest['user'].id === userIdFirstCustomer.id &&
@@ -877,16 +886,22 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.patch(`/contest/update/${dataContest.id}`)
+			.patch(`/v1/contest/update/${dataContest.id}`)
 			.set('Cookie', login.headers['set-cookie'])
-			.send(updateContestTypeName);
+			.field('title', updateContestTypeName.title)
+			.field('typeOfName', updateContestTypeName.typeOfName)
+			.field('focusOfWork', updateContestTypeName.focusOfWork)
+			.field('industry', updateContestTypeName.industry)
+			.field('styleName', updateContestTypeName.styleName)
+			.field('targetCustomer', updateContestTypeName.targetCustomer)
+			.attach('file', fileFirstContest);
 
 		expect(isObject(response.body)).toBe(true);
 		expect(response.body.contest).toHaveProperty('id', dataContest.id);
@@ -918,14 +933,9 @@ describe('Contest controller', (): void => {
 			'price',
 			dataContest.price.toString(),
 		);
-		expect(response.body.contest).toHaveProperty(
-			'fileName',
-			dataContest.fileName,
-		);
-		expect(response.body.contest).toHaveProperty(
-			'originalFileName',
-			dataContest.originalFileName,
-		);
+		expect(response.body.contest).toHaveProperty('fileName');
+		expect(isUUID(response.body.contest.fileName.split('.')[0])).toBe(true);
+		expect(response.body.contest).toHaveProperty('originalFileName', fileName);
 		expect(response.body.contest).toHaveProperty(
 			'focusOfWork',
 			updateContestTypeName.focusOfWork,
@@ -961,6 +971,8 @@ describe('Contest controller', (): void => {
 	});
 
 	it(`should update contest, type: ${ContestType.tagline}`, async (): Promise<void> => {
+		const fileName = 'sample.pdf';
+		const fileFirstContest: string = join(__dirname, '../mockImages', fileName);
 		const dataContest: Contest = dataIdContests.filter(
 			(dataContest: Contest): boolean =>
 				dataContest['user'].id === userIdFirstCustomer.id &&
@@ -974,16 +986,22 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.patch(`/contest/update/${dataContest.id}`)
+			.patch(`/v1/contest/update/${dataContest.id}`)
 			.set('Cookie', login.headers['set-cookie'])
-			.send(updateContestTypeTagLine);
+			.field('title', updateContestTypeTagLine.title)
+			.field('focusOfWork', updateContestTypeTagLine.focusOfWork)
+			.field('industry', updateContestTypeTagLine.industry)
+			.field('targetCustomer', updateContestTypeTagLine.targetCustomer)
+			.field('typeOfTagline', updateContestTypeTagLine.typeOfTagline)
+			.field('nameVenture', updateContestTypeTagLine.nameVenture)
+			.attach('file', fileFirstContest);
 
 		expect(isObject(response.body)).toBe(true);
 		expect(response.body.contest).toHaveProperty('id', dataContest.id);
@@ -1015,14 +1033,9 @@ describe('Contest controller', (): void => {
 			'price',
 			dataContest.price.toString(),
 		);
-		expect(response.body.contest).toHaveProperty(
-			'fileName',
-			dataContest.fileName,
-		);
-		expect(response.body.contest).toHaveProperty(
-			'originalFileName',
-			dataContest.originalFileName,
-		);
+		expect(response.body.contest).toHaveProperty('fileName');
+		expect(isUUID(response.body.contest.fileName.split('.')[0])).toBe(true);
+		expect(response.body.contest).toHaveProperty('originalFileName', fileName);
 		expect(response.body.contest).toHaveProperty(
 			'focusOfWork',
 			updateContestTypeTagLine.focusOfWork,
@@ -1058,6 +1071,8 @@ describe('Contest controller', (): void => {
 	});
 
 	it(`should update contest, type: ${ContestType.logo}`, async (): Promise<void> => {
+		const fileName = 'sample.pdf';
+		const fileFirstContest: string = join(__dirname, '../mockImages', fileName);
 		const dataContest: Contest = dataIdContests.filter(
 			(dataContest: Contest): boolean =>
 				dataContest['user'].id === userIdSecondCustomer.id &&
@@ -1071,16 +1086,22 @@ describe('Contest controller', (): void => {
 		);
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataSecondCustomer.email,
 				password: userMockDataSecondCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.patch(`/contest/update/${dataContest.id}`)
+			.patch(`/v1/contest/update/${dataContest.id}`)
 			.set('Cookie', login.headers['set-cookie'])
-			.send(updateContestTypeLogo);
+			.field('title', updateContestTypeLogo.title)
+			.field('focusOfWork', updateContestTypeLogo.focusOfWork)
+			.field('industry', updateContestTypeLogo.industry)
+			.field('targetCustomer', updateContestTypeLogo.targetCustomer)
+			.field('brandStyle', updateContestTypeLogo.brandStyle)
+			.field('nameVenture', updateContestTypeLogo.nameVenture)
+			.attach('file', fileFirstContest);
 
 		expect(isObject(response.body)).toBe(true);
 		expect(response.body.contest).toHaveProperty('id', dataContest.id);
@@ -1112,14 +1133,9 @@ describe('Contest controller', (): void => {
 			'price',
 			dataContest.price.toString(),
 		);
-		expect(response.body.contest).toHaveProperty(
-			'fileName',
-			dataContest.fileName,
-		);
-		expect(response.body.contest).toHaveProperty(
-			'originalFileName',
-			dataContest.originalFileName,
-		);
+		expect(response.body.contest).toHaveProperty('fileName');
+		expect(isUUID(response.body.contest.fileName.split('.')[0])).toBe(true);
+		expect(response.body.contest).toHaveProperty('originalFileName', fileName);
 		expect(response.body.contest).toHaveProperty(
 			'focusOfWork',
 			updateContestTypeLogo.focusOfWork,

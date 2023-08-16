@@ -38,13 +38,13 @@ export class PaymentService {
 		);
 		return await this.prisma.$transaction(async (): Promise<number> => {
 			await this.updateBalance(
-				{ balance: { decrement: sum } },
+				{ balance: { decrement: +sum } },
 				number,
 				cvc,
 				expiry,
 			);
 			await this.updateBalance(
-				{ balance: { increment: sum } },
+				{ balance: { increment: +sum } },
 				PayConstants.SQUADHELP_BANK_NUMBER,
 				PayConstants.SQUADHELP_BANK_CVC,
 				PayConstants.SQUADHELP_BANK_EXPIRY,
@@ -57,17 +57,17 @@ export class PaymentService {
 		const { number, cvc, expiry, sum }: CashOutDto = dto;
 		const balanceForCheck: BalanceUserDto =
 			await this.userService.getBalanceUser(id);
-		if (balanceForCheck.balance < sum)
+		if (Number(balanceForCheck.balance) < +sum)
 			throw new BadRequestException(AppErrors.INSUFFICIENT_FUNDS_TO_PAY);
 		return await this.prisma.$transaction(async (): Promise<BalanceUserDto> => {
 			await this.updateBalance(
-				{ balance: { increment: sum } },
+				{ balance: { increment: +sum } },
 				number,
 				cvc,
 				expiry,
 			);
 			await this.updateBalance(
-				{ balance: { decrement: sum } },
+				{ balance: { decrement: +sum } },
 				PayConstants.SQUADHELP_BANK_NUMBER,
 				PayConstants.SQUADHELP_BANK_CVC,
 				PayConstants.SQUADHELP_BANK_EXPIRY,
@@ -81,7 +81,12 @@ export class PaymentService {
 		});
 	}
 
-	private async updateBalance(data, number, cvc, expiry): Promise<void> {
+	private async updateBalance(
+		data: { balance: { decrement?: number; increment?: number } },
+		number: string,
+		cvc: string,
+		expiry: string,
+	): Promise<void> {
 		try {
 			await this.prisma.bank.updateMany({
 				data,
@@ -101,7 +106,12 @@ export class PaymentService {
 		}
 	}
 
-	private async verifyCard(number, cvc, expiry, sum): Promise<void> {
+	private async verifyCard(
+		number: string,
+		cvc: string,
+		expiry: string,
+		sum: number,
+	): Promise<void> {
 		const dataBank: Bank = await this.prisma.bank.findFirst({
 			where: {
 				cardNumber: number.replace(/ /g, ''),
@@ -112,29 +122,34 @@ export class PaymentService {
 		if (!dataBank) {
 			throw new BadRequestException(AppErrors.INCORRECT_PAYMENT_CARD_DETAILS);
 		}
-		if (dataBank.balance < sum)
+		if (Number(dataBank.balance) < sum)
 			throw new BadRequestException(AppErrors.INSUFFICIENT_FUNDS_TO_PAY);
 	}
 
-	private createDataForCreateContests(id, contests): ICreatContest[] {
+	private createDataForCreateContests(
+		id: number,
+		contests: (
+			| NameCreateContestPayDto
+			| LogoCreateContestPayDto
+			| TaglineCreateContestPayDto
+		)[],
+	): ICreatContest[] {
 		const orderId: string = uuid.v4();
-		contests.map(
+		return contests.map(
 			(
 				contest:
 					| NameCreateContestPayDto
 					| LogoCreateContestPayDto
 					| TaglineCreateContestPayDto,
 				index: number,
-			): void => {
-				contests[index] = Object.assign({} as ICreatContest, contest, {
-					status: index === 0 ? ContestStatus.active : ContestStatus.pending,
-					userId: id,
-					priority: index + 1,
-					orderId,
-					price: +contest.price,
-				});
-			},
+			): ICreatContest => ({
+				...contest,
+				status: index === 0 ? ContestStatus.active : ContestStatus.pending,
+				userId: id,
+				priority: index + 1,
+				orderId,
+				price: +contest.price,
+			}),
 		);
-		return contests;
 	}
 }

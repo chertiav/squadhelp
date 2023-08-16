@@ -93,8 +93,7 @@ export class PaymentController {
 	async pay(
 		@UserId() id: number,
 		@UploadedFiles() files: Array<Express.Multer.File>,
-		@Body()
-		dto: PayDto,
+		@Body() dto: PayDto,
 	): Promise<PayResDto> {
 		const countContests: number = await this.paymentService.payment(id, dto);
 		return {

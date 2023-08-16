@@ -1,4 +1,9 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+	HttpStatus,
+	INestApplication,
+	ValidationPipe,
+	VersioningType,
+} from '@nestjs/common';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { isNumber, useContainer } from 'class-validator';
@@ -27,6 +32,7 @@ describe('User Controller', (): void => {
 		prisma = app.get<PrismaService>(PrismaService);
 		useContainer(app.select(AppModule), { fallbackOnErrors: true });
 		app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+		app.enableVersioning({ type: VersioningType.URI });
 		app.use(cookieParser());
 		await app.init();
 	});
@@ -68,14 +74,14 @@ describe('User Controller', (): void => {
 
 	it('should update user', async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.patch('/user/update')
+			.patch('/v1/user/update')
 			.set('Cookie', login.headers['set-cookie'])
 			.send(userUpdateMockData);
 
@@ -93,14 +99,14 @@ describe('User Controller', (): void => {
 
 	it('should get user info', async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get('/user/info')
+			.get('/v1/user/info')
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(response.body.firstName).toBe(userMockDataFirstCustomer.firstName);
@@ -114,14 +120,14 @@ describe('User Controller', (): void => {
 
 	it("should get user's balance", async (): Promise<void> => {
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCreator.email,
 				password: userMockDataFirstCreator.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get('/user/balance')
+			.get('/v1/user/balance')
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(response.body.balance).toBe('0');

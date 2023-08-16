@@ -1,4 +1,9 @@
-import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
+import {
+	HttpStatus,
+	INestApplication,
+	ValidationPipe,
+	VersioningType,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { isNumber, useContainer } from 'class-validator';
 import * as request from 'supertest';
@@ -29,6 +34,7 @@ describe('Auth Controller', (): void => {
 		useContainer(app.select(AppModule), { fallbackOnErrors: true });
 		app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 		app.use(cookieParser());
+		app.enableVersioning({ type: VersioningType.URI });
 		await app.init();
 	});
 
@@ -45,7 +51,7 @@ describe('Auth Controller', (): void => {
 
 	it('should create user', async (): Promise<void> => {
 		const response: request.Response = await request(app.getHttpServer())
-			.post('/auth/register')
+			.post('/v1/auth/register')
 			.send(userMockDataFirstCustomer);
 
 		expect(isNumber(response.body.user.id)).toBe(true);
@@ -64,7 +70,7 @@ describe('Auth Controller', (): void => {
 		});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
@@ -86,14 +92,14 @@ describe('Auth Controller', (): void => {
 		});
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const loginCheck: request.Response = await request(app.getHttpServer())
-			.get('/auth/login-check')
+			.get('/v1/auth/login-check')
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(isNumber(loginCheck.body.id)).toBe(true);
@@ -110,14 +116,14 @@ describe('Auth Controller', (): void => {
 		});
 
 		const login: request.Response = await request(app.getHttpServer())
-			.post('/auth/login')
+			.post('/v1/auth/login')
 			.send({
 				email: userMockDataFirstCustomer.email,
 				password: userMockDataFirstCustomer.password,
 			});
 
 		const response: request.Response = await request(app.getHttpServer())
-			.get('/auth/logout')
+			.get('/v1/auth/logout')
 			.set('Cookie', login.headers['set-cookie']);
 
 		expect(response.body.message).toBe(AppMessages.MSG_LOGGED_OUT);
