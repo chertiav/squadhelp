@@ -21,7 +21,6 @@ import {
 	NameCreateContestDto,
 	TaglineCreateContestDto,
 } from '../contest';
-import { Decimal } from '@prisma/client/runtime/library';
 import { AppMessages } from '../../messages';
 import { BalanceUserDto } from '../user';
 
@@ -56,7 +55,7 @@ export class PayDto extends IntersectionType(FilesDto) {
 	@IsCreditCard({ context: '' })
 	@ApiProperty({
 		description: 'Number credit card',
-		example: '4111 1111 1111 1111',
+		example: PayConstants.CUSTOMER_CREDIT_CARD_NUMBER,
 	})
 	number: string;
 
@@ -66,7 +65,7 @@ export class PayDto extends IntersectionType(FilesDto) {
 	})
 	@ApiProperty({
 		description: 'Expiry credit card',
-		example: '09/23',
+		example: PayConstants.CUSTOMER_CREDIT_CARD_EXPIRY,
 	})
 	expiry: string;
 
@@ -76,16 +75,16 @@ export class PayDto extends IntersectionType(FilesDto) {
 	})
 	@ApiProperty({
 		description: 'cvc credit card',
-		example: '505',
+		example: PayConstants.CUSTOMER_CREDIT_CARD_CVC,
 	})
 	cvc: string;
 
+	@IsNotEmpty()
 	@ApiProperty({
 		description: 'Total payable',
-		example: '300',
-		type: 'number',
+		example: 300,
 	})
-	sum: Decimal;
+	sum: number;
 
 	@IsArray()
 	@ArrayMinSize(1)
@@ -108,11 +107,11 @@ export class PayDto extends IntersectionType(FilesDto) {
 			PayConstants.API_PROPERTY_PAY_EXAMPLE_LOGO,
 		],
 	})
-	contests: [
-		NameCreateContestPayDto,
-		TaglineCreateContestPayDto,
-		LogoCreateContestPayDto,
-	];
+	contests: (
+		| NameCreateContestPayDto
+		| LogoCreateContestPayDto
+		| TaglineCreateContestPayDto
+	)[];
 }
 
 export class PayResDto {
