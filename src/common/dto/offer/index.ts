@@ -45,6 +45,7 @@ class OfferUser extends IntersectionType(
 		'firstName',
 		'lastName',
 		'displayName',
+		'email',
 		'avatar',
 	] as const),
 ) {

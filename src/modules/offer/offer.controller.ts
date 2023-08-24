@@ -101,7 +101,7 @@ export class OfferController {
 	async create(
 		@UserId() userId: number,
 		@UploadedFile() file: Express.Multer.File,
-		@Body() dto: CreateOfferDto,
+		@Body() dto: CreateOfferDto | any,
 	): Promise<CreateOfferResDto> {
 		const offer: OfferDataDto = await this.offerService.createOffer(
 			userId,
