@@ -339,7 +339,7 @@ describe('Offer controller', (): void => {
 		expect(response.status).toBe(HttpStatus.OK);
 	});
 
-	it(`should set offer status by moderator`, async (): Promise<void> => {
+	it(`should set active offer status by moderator`, async (): Promise<void> => {
 		const contestForOffer: Contest[] = await prisma.contest.findMany({
 			where: {
 				status: ContestStatus.active,
@@ -347,15 +347,27 @@ describe('Offer controller', (): void => {
 			},
 		});
 		const offerText = 'offer text';
-		const offerId: { id: number } = await prisma.offer.create({
-			data: {
-				contestId: contestForOffer[0].id,
-				text: offerText,
-				status: OfferStatus.pending,
-				userId: userIdFirstCreator.id,
-			},
-			select: { id: true },
-		});
+		const offerData: { id: number; contest: { user: { email: string } } } =
+			await prisma.offer.create({
+				data: {
+					contestId: contestForOffer[0].id,
+					text: offerText,
+					status: OfferStatus.pending,
+					userId: userIdFirstCreator.id,
+				},
+				select: {
+					id: true,
+					contest: {
+						select: {
+							user: {
+								select: {
+									email: true,
+								},
+							},
+						},
+					},
+				},
+			});
 
 		const login: request.Response = await request(app.getHttpServer())
 			.post('/v1/auth/login')
@@ -368,20 +380,17 @@ describe('Offer controller', (): void => {
 			.patch(`/v1/offer/set-status`)
 			.set('Cookie', login.headers['set-cookie'])
 			.send({
-				contestId: contestForOffer[0].id,
-				command: OFFER_STATUS_COMMAND.reject,
-				offerId: offerId.id,
-				creatorId: userIdFirstCreator.id,
-				orderId: contestForOffer[0].orderId,
-				priority: contestForOffer[0].priority,
+				command: OFFER_STATUS_COMMAND.active,
+				offerId: offerData.id,
 				emailCreator: userMockDataFirstCreator.email,
+				emailCustomer: offerData.contest.user.email,
 			});
 
-		expect(response.body).toHaveProperty('id', offerId.id);
+		expect(response.body).toHaveProperty('id', offerData.id);
 		expect(response.body).toHaveProperty('text', offerText);
 		expect(response.body).toHaveProperty('originalFileName', null);
 		expect(response.body).toHaveProperty('fileName', null);
-		expect(response.body).toHaveProperty('status', OfferStatus.rejected);
+		expect(response.body).toHaveProperty('status', OfferStatus.active);
 		expect(response.status).toBe(HttpStatus.OK);
 	});
 
@@ -595,7 +604,7 @@ describe('Offer controller', (): void => {
 			)
 			.filter(Boolean);
 
-		const dataContest: Contest = dataIdContests.filter(
+		const dataContestFirstCustomer: Contest = dataIdContests.filter(
 			(dataContest: Contest): boolean =>
 				dataContest['user'].id === userIdFirstCustomer.id &&
 				dataContest.status === ContestStatus.active &&
@@ -603,6 +612,17 @@ describe('Offer controller', (): void => {
 					(contestId: number): boolean => contestId === dataContest.id,
 				),
 		)[0];
+
+		const dataContest: Contest = dataContestFirstCustomer?.id
+			? dataContestFirstCustomer
+			: dataIdContests.filter(
+					(dataContest: Contest): boolean =>
+						dataContest['user'].id === userIdSecondCustomer.id &&
+						dataContest.status === ContestStatus.active &&
+						pendingOffers.some(
+							(contestId: number): boolean => contestId === dataContest.id,
+						),
+			  )[0];
 
 		const idContestsOffers: number[] = pendingOffers.filter(
 			(contestId: number): boolean => contestId === dataContest.id,
@@ -672,7 +692,9 @@ describe('Offer controller', (): void => {
 		expect(getOfferForCheck(response.body.offers)[0].contest).toHaveProperty(
 			'user',
 			{
-				email: userMockDataFirstCustomer.email,
+				email: dataContestFirstCustomer?.id
+					? userMockDataFirstCustomer.email
+					: userMockDataSecondCustomer.email,
 			},
 		);
 		expect(response.body).toHaveProperty('totalCount', idContestsOffers.length);
