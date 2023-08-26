@@ -59,6 +59,7 @@ export class OfferService {
 			role,
 			+query.contestId,
 		);
+		let offersData: OfferDto[];
 		const [offers, totalCount]: [
 			offers: OfferDto[] | OfferForModeratorDto[],
 			totalCount: number,
@@ -69,8 +70,16 @@ export class OfferService {
 			}),
 			this.prismaService.offer.count({ where: predicates.where }),
 		]);
+		if (role !== Role.moderator) {
+			offersData = offers.map(
+				(offer: OfferDto): OfferDto => ({
+					...offer,
+					ratings: offer.ratings.length ? offer.ratings : [{ mark: 0 }],
+				}),
+			);
+		}
 		return {
-			offers,
+			offers: role === Role.moderator ? offers : offersData,
 			totalCount,
 		};
 	}
