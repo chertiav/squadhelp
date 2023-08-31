@@ -9,17 +9,20 @@ import {
 	userMockDataFirstCustomer,
 	contestMockDataFirstCustomer,
 	offersMockDataFirstCreator,
+	userMockDataSecondCustomer,
+	contestMockDataSecondCustomer,
 } from '../mockData';
 import { RatingService } from '../../src/modules/rating/rating.service';
 import { ICreatContest } from '../../src/common/interfaces/contest';
-import { Contest, Offer, OfferStatus } from '@prisma/client';
+import { Contest, Offer, OfferStatus, User } from '@prisma/client';
 import { ChangeRatingDto, RatingDto } from '../../src/common/dto/rating';
 
-describe('Payment service', (): void => {
+describe('Rating service', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let ratingService: RatingService;
 	let userIdFirstCustomer: { id: number };
+	let userIdSecondCustomer: { id: number };
 	let userIdFirstCreator: { id: number };
 	let dataMockContests: { contests: ICreatContest[] };
 
@@ -49,6 +52,10 @@ describe('Payment service', (): void => {
 					...userMockDataFirstCreator,
 					password: await hashPassword(userMockDataFirstCreator.password),
 				},
+				{
+					...userMockDataSecondCustomer,
+					password: await hashPassword(userMockDataSecondCustomer.password),
+				},
 			],
 		});
 
@@ -60,6 +67,10 @@ describe('Payment service', (): void => {
 			where: { email: userMockDataFirstCreator.email },
 			select: { id: true },
 		});
+		userIdSecondCustomer = await prisma.user.findUnique({
+			where: { email: userMockDataSecondCustomer.email },
+			select: { id: true },
+		});
 
 		const seedMockDataContestsFirstCustomer: ICreatContest[] =
 			contestMockDataFirstCustomer.map(
@@ -69,8 +80,26 @@ describe('Payment service', (): void => {
 				}),
 			);
 
+		const seedMockDataContestsSecondCustomer: ICreatContest[] =
+			contestMockDataSecondCustomer.map(
+				(contest: ICreatContest): ICreatContest => ({
+					...contest,
+					userId: userIdSecondCustomer.id,
+				}),
+			);
+
 		dataMockContests = {
-			contests: [...seedMockDataContestsFirstCustomer],
+			contests: [
+				...seedMockDataContestsFirstCustomer,
+				...seedMockDataContestsSecondCustomer,
+			],
+		};
+
+		dataMockContests = {
+			contests: [
+				...seedMockDataContestsFirstCustomer,
+				...seedMockDataContestsSecondCustomer,
+			],
 		};
 
 		await prisma.contest.createMany({
@@ -116,12 +145,17 @@ describe('Payment service', (): void => {
 		await prisma.user.deleteMany({
 			where: {
 				email: {
-					in: [userMockDataFirstCustomer.email, userMockDataFirstCreator.email],
+					in: [
+						userMockDataFirstCustomer.email,
+						userMockDataFirstCreator.email,
+						userMockDataSecondCustomer.email,
+					],
 				},
 			},
 		});
 		dataMockContests.contests = [];
 		userIdFirstCustomer = { id: null };
+		userIdSecondCustomer = { id: null };
 		userIdFirstCreator = { id: null };
 	});
 
@@ -133,7 +167,10 @@ describe('Payment service', (): void => {
 	it(`should change offer rating, first grade mark`, async (): Promise<void> => {
 		const dataOfferId: { id: number; offers: { id: number }[] }[] =
 			await prisma.contest.findMany({
-				where: { offers: { some: { status: OfferStatus.active } } },
+				where: {
+					offers: { some: { status: OfferStatus.active } },
+					userId: userIdFirstCustomer.id,
+				},
 				select: { id: true, offers: { select: { id: true } } },
 			});
 
@@ -149,38 +186,78 @@ describe('Payment service', (): void => {
 			userIdFirstCustomer.id,
 		);
 
-		expect(response).toHaveProperty('userId', userIdFirstCreator.id);
-		expect(response).toHaveProperty('rating', dataRating.mark);
-	});
-
-	it(`should change offer rating, subsequent evaluations`, async (): Promise<void> => {
-		const dataOfferId: { id: number; offers: { id: number }[] }[] =
-			await prisma.contest.findMany({
-				where: { offers: { some: { status: OfferStatus.active } } },
-				select: { id: true, offers: { select: { id: true } } },
-			});
-
-		await prisma.rating.create({
-			data: {
-				offerId: dataOfferId[0].offers[0].id,
-				userId: userIdFirstCustomer.id,
-				mark: 1,
+		const dataCreator: User = await prisma.user.findUnique({
+			where: {
+				id: userIdFirstCreator.id,
 			},
 		});
 
-		const dataUpdateRating: ChangeRatingDto = {
-			offerId: dataOfferId[0].offers[0].id.toString(),
+		expect(response).toHaveProperty('userId', userIdFirstCreator.id);
+		expect(response).toHaveProperty('rating', dataRating.mark);
+		expect(dataCreator.rating).toBe(dataRating.mark);
+	});
+
+	it(`should change offer rating, subsequent evaluations`, async (): Promise<void> => {
+		const dataOfferIdFirstCustomer: { id: number; offers: { id: number }[] }[] =
+			await prisma.contest.findMany({
+				where: {
+					offers: { some: { status: OfferStatus.active } },
+					userId: userIdFirstCustomer.id,
+				},
+				select: { id: true, offers: { select: { id: true } } },
+			});
+
+		const dataOfferIdSecondCustomer: {
+			id: number;
+			offers: { id: number }[];
+		}[] = await prisma.contest.findMany({
+			where: {
+				offers: { some: { status: OfferStatus.active } },
+				userId: userIdSecondCustomer.id,
+			},
+			select: { id: true, offers: { select: { id: true } } },
+		});
+
+		const testMark: number = Math.floor(Math.random() * 5);
+
+		await prisma.rating.createMany({
+			data: [
+				{
+					offerId: dataOfferIdFirstCustomer[0].offers[0].id,
+					userId: userIdFirstCustomer.id,
+					mark: testMark,
+				},
+				{
+					offerId: dataOfferIdSecondCustomer[0].offers[0].id,
+					userId: userIdSecondCustomer.id,
+					mark: testMark,
+				},
+			],
+		});
+
+		const dataUpdateRatingFirstCustomer: ChangeRatingDto = {
+			offerId: dataOfferIdFirstCustomer[0].offers[0].id.toString(),
 			creatorId: userIdFirstCreator.id.toString(),
 			mark: 1.5,
 			isFirst: false,
 		};
 
 		const response: RatingDto = await ratingService.changeRating(
-			dataUpdateRating,
+			dataUpdateRatingFirstCustomer,
 			userIdFirstCustomer.id,
 		);
 
+		const dataCreator: User = await prisma.user.findUnique({
+			where: {
+				id: userIdFirstCreator.id,
+			},
+		});
+
+		const testAvgRating: number =
+			(dataUpdateRatingFirstCustomer.mark + testMark) / 2;
+
 		expect(response).toHaveProperty('userId', userIdFirstCreator.id);
-		expect(response).toHaveProperty('rating', dataUpdateRating.mark);
+		expect(response).toHaveProperty('rating', testAvgRating);
+		expect(dataCreator.rating).toBe(testAvgRating);
 	});
 });

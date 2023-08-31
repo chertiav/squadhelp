@@ -14,6 +14,7 @@ import {
 	ApiBody,
 	ApiConsumes,
 	ApiCookieAuth,
+	ApiCreatedResponse,
 	ApiExtraModels,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
@@ -78,7 +79,7 @@ export class PaymentController {
 	@ApiBody({
 		type: PayDto,
 	})
-	@ApiOkResponse({ type: PayResDto })
+	@ApiCreatedResponse({ type: PayResDto })
 	@ApiCookieAuth()
 	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)

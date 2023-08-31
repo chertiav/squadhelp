@@ -17,6 +17,7 @@ import { InfoUserDto } from '../user';
 import { AppMessages } from '../../messages';
 import { OFFER_STATUS_COMMAND } from '../../enum';
 import { QueryPaginationDto } from '../pagination';
+import { API_BODY_EXAMPLES_LOGIN } from '../../constants/auth.constants';
 
 export class CreateOfferDto extends IntersectionType(
 	PickType(FileDto, ['file']),
@@ -166,7 +167,7 @@ export class SetOfferStatusFromCustomerDto {
 	@IsEmail()
 	@ApiProperty({
 		description: 'Creator email address',
-		example: 'witcher@gmail.com',
+		example: API_BODY_EXAMPLES_LOGIN.creator_1.value.email,
 	})
 	emailCreator: string;
 }
@@ -177,7 +178,7 @@ export class SetOfferStatusFromModeratorDto extends PickType(
 ) {
 	@ApiProperty({
 		description: 'Customer email address',
-		example: 'ragnar@gmail.com',
+		example: API_BODY_EXAMPLES_LOGIN.customer_1.value.email,
 	})
 	@IsNotEmpty()
 	@IsEmail()

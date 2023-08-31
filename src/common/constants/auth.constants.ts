@@ -4,44 +4,12 @@ import {
 	IApiBodyExamplesRegister,
 } from '../interfaces/auth';
 import { Role } from '@prisma/client';
+import { seedUserDataModerator } from '../../../prisma/seeders/data';
 
 export const AUTH_COOKIES_OPTIONS: IAuthCookiesOptions = {
 	httpOnly: true,
 	secure: false,
 	maxAge: 24 * 60 * 60 * 1000,
-};
-
-export const API_BODY_EXAMPLES_LOGIN: IApiBodyExamplesLogin = {
-	moderator: {
-		value: {
-			email: 'johnsnowtest@gmail.com',
-			password: 'Johnsnow123+',
-		},
-	},
-	customer_1: {
-		value: {
-			email: 'ragnartest@gmail.com',
-			password: 'Ragnar123+',
-		},
-	},
-	customer_2: {
-		value: {
-			email: 'supernaturaltest@gmail.com',
-			password: 'Winchester123+',
-		},
-	},
-	creator_1: {
-		value: {
-			email: 'witchertest@gmail.com',
-			password: 'Geralt123+',
-		},
-	},
-	creator_2: {
-		value: {
-			email: 'sam_supernaturaltest@gmail.com',
-			password: 'Sam_winchester123+',
-		},
-	},
 };
 
 export const API_BODY_EXAMPLES_REGISTER: IApiBodyExamplesRegister = {
@@ -79,10 +47,43 @@ export const API_BODY_EXAMPLES_REGISTER: IApiBodyExamplesRegister = {
 		value: {
 			firstName: 'Sam',
 			lastName: 'Winchester',
-			displayName: 'sam',
+			displayName: 'same',
 			email: 'sam_supernaturaltest@gmail.com',
 			password: 'Sam_winchester123+',
 			role: Role.creator,
+		},
+	},
+};
+
+export const API_BODY_EXAMPLES_LOGIN: IApiBodyExamplesLogin = {
+	moderator: {
+		value: {
+			email: seedUserDataModerator.email,
+			password: seedUserDataModerator.password,
+		},
+	},
+	customer_1: {
+		value: {
+			email: API_BODY_EXAMPLES_REGISTER.customer_1.value.email,
+			password: API_BODY_EXAMPLES_REGISTER.customer_1.value.password,
+		},
+	},
+	customer_2: {
+		value: {
+			email: API_BODY_EXAMPLES_REGISTER.customer_2.value.email,
+			password: API_BODY_EXAMPLES_REGISTER.customer_2.value.password,
+		},
+	},
+	creator_1: {
+		value: {
+			email: API_BODY_EXAMPLES_REGISTER.creator_1.value.email,
+			password: API_BODY_EXAMPLES_REGISTER.creator_1.value.password,
+		},
+	},
+	creator_2: {
+		value: {
+			email: API_BODY_EXAMPLES_REGISTER.creator_2.value.email,
+			password: API_BODY_EXAMPLES_REGISTER.creator_2.value.password,
 		},
 	},
 };
