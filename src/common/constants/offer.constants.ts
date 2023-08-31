@@ -4,6 +4,7 @@ import {
 	ISelectOfferDataMail,
 } from '../interfaces/offer';
 import { OfferForModeratorRsDto, OffersResDto } from '../dto/offer';
+import { API_BODY_EXAMPLES_LOGIN } from './auth.constants';
 
 export const SELECT_FIELD_OFFER_DATA_MAIL: ISelectOfferDataMail = {
 	originalFileName: true,
@@ -43,15 +44,15 @@ export const API_BODY_EXAMPLES_SET_STATUS: IApiBodyExamplesSetStatus = {
 			creatorId: '3',
 			orderId: '0099108a-080d-42e4-8c0a-a693d0c0e2c0',
 			priority: '1',
-			emailCreator: 'witcher@gmail.com',
+			emailCreator: API_BODY_EXAMPLES_LOGIN.creator_1.value.email,
 		},
 	},
 	'from moderator': {
 		value: {
 			command: 'active',
 			offerId: '3',
-			emailCreator: 'witcher@gmail.com',
-			emailCustomer: 'ragnar@gmail.com',
+			emailCreator: API_BODY_EXAMPLES_LOGIN.creator_1.value.email,
+			emailCustomer: API_BODY_EXAMPLES_LOGIN.customer_1.value.email,
 		},
 	},
 };
@@ -68,7 +69,7 @@ export const API_OK_RESPONSE_EXAMPLES_GET_OFFERS: OffersResDto = {
 				id: 3,
 				firstName: 'Geralt',
 				lastName: 'Witcher',
-				email: 'witcher@gmail.com',
+				email: API_BODY_EXAMPLES_LOGIN.creator_1.value.email,
 				avatar: 'anon.png',
 				rating: 2.583333333333333,
 			},
@@ -92,11 +93,11 @@ export const API_OK_RESPONSE_EXAMPLES_GET_OFFERS_MODERATOR: OfferForModeratorRsD
 				originalFileName: null,
 				status: 'pending',
 				user: {
-					email: 'witcher@gmail.com',
+					email: API_BODY_EXAMPLES_LOGIN.creator_1.value.email,
 				},
 				contest: {
 					user: {
-						email: 'ragnar@gmail.com',
+						email: API_BODY_EXAMPLES_LOGIN.customer_1.value.email,
 					},
 				},
 			},

@@ -172,6 +172,8 @@ export class OfferController {
 			),
 		},
 		examples: OfferConstants.API_BODY_EXAMPLES_SET_STATUS,
+		description:
+			'command: for moderator - "active", for customer - "reject" or "resolve"',
 	})
 	@ApiOkResponse({
 		type: OfferUpdateDto,

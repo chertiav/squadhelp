@@ -41,7 +41,7 @@ export class RatingService {
 					});
 				await this.userService.updateUser(
 					+creatorId,
-					{ rating: avg._avg.mark },
+					{ rating: isFirst ? mark : avg._avg.mark },
 					null,
 				);
 				const offerData: IOfferDataMail = await this.offerService.findOneOffer(
@@ -49,8 +49,7 @@ export class RatingService {
 					OfferConstants.SELECT_FIELD_OFFER_DATA_MAIL,
 				);
 				await this.mailService.sendMail(
-					'chertiav@gmail.com',
-					// offerData.user.email,
+					offerData.user.email,
 					AppMessages.MSG_EMAIL_RATING,
 					{
 						text: offerData.text,

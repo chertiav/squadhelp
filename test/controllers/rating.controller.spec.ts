@@ -11,22 +11,25 @@ import * as bcrypt from 'bcrypt';
 import * as cookieParser from 'cookie-parser';
 import * as request from 'supertest';
 
-import { Contest, Offer, OfferStatus } from '@prisma/client';
+import { Contest, Offer, OfferStatus, User } from '@prisma/client';
 import {
 	contestMockDataFirstCustomer,
+	contestMockDataSecondCustomer,
 	offersMockDataFirstCreator,
 	userMockDataFirstCreator,
 	userMockDataFirstCustomer,
+	userMockDataSecondCustomer,
 } from '../mockData';
 import { AppModule } from '../../src/modules/app/app.module';
 import { ICreatContest } from '../../src/common/interfaces/contest';
 import { ChangeRatingDto } from '../../src/common/dto/rating';
 import { AppMessages } from '../../src/common/messages';
 
-describe('Contest controller', (): void => {
+describe('Rating controller', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let userIdFirstCustomer: { id: number };
+	let userIdSecondCustomer: { id: number };
 	let userIdFirstCreator: { id: number };
 	let dataMockContests: { contests: ICreatContest[] };
 
@@ -59,6 +62,10 @@ describe('Contest controller', (): void => {
 					...userMockDataFirstCreator,
 					password: await hashPassword(userMockDataFirstCreator.password),
 				},
+				{
+					...userMockDataSecondCustomer,
+					password: await hashPassword(userMockDataSecondCustomer.password),
+				},
 			],
 		});
 
@@ -70,6 +77,10 @@ describe('Contest controller', (): void => {
 			where: { email: userMockDataFirstCreator.email },
 			select: { id: true },
 		});
+		userIdSecondCustomer = await prisma.user.findUnique({
+			where: { email: userMockDataSecondCustomer.email },
+			select: { id: true },
+		});
 
 		const seedMockDataContestsFirstCustomer: ICreatContest[] =
 			contestMockDataFirstCustomer.map(
@@ -79,8 +90,26 @@ describe('Contest controller', (): void => {
 				}),
 			);
 
+		const seedMockDataContestsSecondCustomer: ICreatContest[] =
+			contestMockDataSecondCustomer.map(
+				(contest: ICreatContest): ICreatContest => ({
+					...contest,
+					userId: userIdSecondCustomer.id,
+				}),
+			);
+
 		dataMockContests = {
-			contests: [...seedMockDataContestsFirstCustomer],
+			contests: [
+				...seedMockDataContestsFirstCustomer,
+				...seedMockDataContestsSecondCustomer,
+			],
+		};
+
+		dataMockContests = {
+			contests: [
+				...seedMockDataContestsFirstCustomer,
+				...seedMockDataContestsSecondCustomer,
+			],
 		};
 
 		await prisma.contest.createMany({
@@ -126,12 +155,17 @@ describe('Contest controller', (): void => {
 		await prisma.user.deleteMany({
 			where: {
 				email: {
-					in: [userMockDataFirstCustomer.email, userMockDataFirstCreator.email],
+					in: [
+						userMockDataFirstCustomer.email,
+						userMockDataFirstCreator.email,
+						userMockDataSecondCustomer.email,
+					],
 				},
 			},
 		});
 		dataMockContests.contests = [];
 		userIdFirstCustomer = { id: null };
+		userIdSecondCustomer = { id: null };
 		userIdFirstCreator = { id: null };
 	});
 
@@ -143,15 +177,11 @@ describe('Contest controller', (): void => {
 	it(`should change offer rating, first grade mark `, async (): Promise<void> => {
 		const dataOfferId: { id: number; offers: { id: number }[] }[] =
 			await prisma.contest.findMany({
-				where: { offers: { some: { status: OfferStatus.active } } },
+				where: {
+					offers: { some: { status: OfferStatus.active } },
+					userId: userIdFirstCustomer.id,
+				},
 				select: { id: true, offers: { select: { id: true } } },
-			});
-
-		const login: request.Response = await request(app.getHttpServer())
-			.post('/v1/auth/login')
-			.send({
-				email: userMockDataFirstCustomer.email,
-				password: userMockDataFirstCustomer.password,
 			});
 
 		const dataRating: ChangeRatingDto = {
@@ -161,10 +191,23 @@ describe('Contest controller', (): void => {
 			isFirst: true,
 		};
 
+		const login: request.Response = await request(app.getHttpServer())
+			.post('/v1/auth/login')
+			.send({
+				email: userMockDataFirstCustomer.email,
+				password: userMockDataFirstCustomer.password,
+			});
+
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/rating/change`)
 			.set('Cookie', login.headers['set-cookie'])
 			.send(dataRating);
+
+		const dataCreator: User = await prisma.user.findUnique({
+			where: {
+				id: userIdFirstCreator.id,
+			},
+		});
 
 		expect(response.body).toHaveProperty('ratingData');
 		expect(response.body.ratingData).toHaveProperty(
@@ -176,26 +219,50 @@ describe('Contest controller', (): void => {
 			'message',
 			AppMessages.MSG_RATING_CHANGE,
 		);
+		expect(dataCreator.rating).toBe(dataRating.mark);
 		expect(response.status).toBe(HttpStatus.OK);
 	});
 
 	it(`should change offer rating, subsequent evaluations `, async (): Promise<void> => {
-		const dataOfferId: { id: number; offers: { id: number }[] }[] =
+		const dataOfferIdFirstCustomer: { id: number; offers: { id: number }[] }[] =
 			await prisma.contest.findMany({
-				where: { offers: { some: { status: OfferStatus.active } } },
+				where: {
+					offers: { some: { status: OfferStatus.active } },
+					userId: userIdFirstCustomer.id,
+				},
 				select: { id: true, offers: { select: { id: true } } },
 			});
 
-		await prisma.rating.create({
-			data: {
-				offerId: dataOfferId[0].offers[0].id,
-				userId: userIdFirstCustomer.id,
-				mark: 1,
+		const dataOfferIdSecondCustomer: {
+			id: number;
+			offers: { id: number }[];
+		}[] = await prisma.contest.findMany({
+			where: {
+				offers: { some: { status: OfferStatus.active } },
+				userId: userIdSecondCustomer.id,
 			},
+			select: { id: true, offers: { select: { id: true } } },
 		});
 
-		const dataUpdateRating: ChangeRatingDto = {
-			offerId: dataOfferId[0].offers[0].id.toString(),
+		const testMark: number = Math.floor(Math.random() * 5);
+
+		await prisma.rating.createMany({
+			data: [
+				{
+					offerId: dataOfferIdFirstCustomer[0].offers[0].id,
+					userId: userIdFirstCustomer.id,
+					mark: testMark,
+				},
+				{
+					offerId: dataOfferIdSecondCustomer[0].offers[0].id,
+					userId: userIdSecondCustomer.id,
+					mark: testMark,
+				},
+			],
+		});
+
+		const dataUpdateRatingFirstCustomer: ChangeRatingDto = {
+			offerId: dataOfferIdFirstCustomer[0].offers[0].id.toString(),
 			creatorId: userIdFirstCreator.id.toString(),
 			mark: 1.5,
 			isFirst: false,
@@ -211,21 +278,28 @@ describe('Contest controller', (): void => {
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/rating/change`)
 			.set('Cookie', login.headers['set-cookie'])
-			.send(dataUpdateRating);
+			.send(dataUpdateRatingFirstCustomer);
+
+		const dataCreator: User = await prisma.user.findUnique({
+			where: {
+				id: userIdFirstCreator.id,
+			},
+		});
+
+		const testAvgRating: number =
+			(dataUpdateRatingFirstCustomer.mark + testMark) / 2;
 
 		expect(response.body).toHaveProperty('ratingData');
 		expect(response.body.ratingData).toHaveProperty(
 			'userId',
 			userIdFirstCreator.id,
 		);
-		expect(response.body.ratingData).toHaveProperty(
-			'rating',
-			dataUpdateRating.mark,
-		);
+		expect(response.body.ratingData).toHaveProperty('rating', testAvgRating);
 		expect(response.body).toHaveProperty(
 			'message',
 			AppMessages.MSG_RATING_CHANGE,
 		);
+		expect(dataCreator.rating).toBe(testAvgRating);
 		expect(response.status).toBe(HttpStatus.OK);
 	});
 });

@@ -193,8 +193,7 @@ export class OfferService {
 			}
 			if (role === Role.moderator) {
 				await this.mailService.sendMail(
-					// offerData.user.email,
-					'chertiav@gmail.com',
+					offerData.user.email,
 					AppMessages.MSG_EMAIL_MODERATOR_REJECT,
 					{
 						text: offerData.text,
