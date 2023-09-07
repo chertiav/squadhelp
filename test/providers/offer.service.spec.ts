@@ -34,11 +34,13 @@ import {
 } from '../../src/common/dto/offer';
 import { AppMessages } from '../../src/common/messages';
 import { OFFER_STATUS_COMMAND } from '../../src/common/enum';
+import { FileService } from '../../src/modules/file/file.service';
 
 describe('Contest service', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let offerService: OfferService;
+	let fileService: FileService;
 	let dataMockContests: { contests: ICreatContest[] };
 	let userIdFirstCustomer: { id: number };
 	let userIdSecondCustomer: { id: number };
@@ -50,6 +52,7 @@ describe('Contest service', (): void => {
 		}).compile();
 		app = moduleFixture.createNestApplication();
 		prisma = app.get<PrismaService>(PrismaService);
+		fileService = app.get<FileService>(FileService);
 		offerService = app.get<OfferService>(OfferService);
 		await app.init();
 	});
@@ -143,6 +146,7 @@ describe('Contest service', (): void => {
 	});
 
 	afterAll(async (): Promise<void> => {
+		fileService.removeAllFiles();
 		await prisma.$disconnect();
 		await app.close();
 	});
