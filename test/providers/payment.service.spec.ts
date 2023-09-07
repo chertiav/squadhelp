@@ -18,11 +18,13 @@ import {
 	TaglineCreateContestPayDto,
 } from '../../src/common/dto/payment';
 import { BalanceUserDto } from '../../src/common/dto/user';
+import { FileService } from '../../src/modules/file/file.service';
 
 describe('Payment service', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
 	let paymentService: PaymentService;
+	let fileService: FileService;
 	let userIdFirstCustomer: { id: number };
 	let userIdFirstCreator: { id: number };
 
@@ -33,6 +35,7 @@ describe('Payment service', (): void => {
 		app = moduleFixture.createNestApplication();
 		prisma = app.get<PrismaService>(PrismaService);
 		paymentService = app.get<PaymentService>(PaymentService);
+		fileService = app.get<FileService>(FileService);
 		await app.init();
 	});
 
@@ -82,6 +85,7 @@ describe('Payment service', (): void => {
 	});
 
 	afterAll(async (): Promise<void> => {
+		fileService.removeAllFiles();
 		await prisma.$disconnect();
 		await app.close();
 	});

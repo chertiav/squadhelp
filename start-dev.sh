@@ -10,6 +10,8 @@ echo "-----> Provisioning containers"
 docker compose --file docker-compose-dev.yaml up -d
 echo ""
 
+sleep 10
+
 # Run migrate.
 echo "-----> Running migrating"
 docker exec -it server-server-dev-1 npx prisma migrate dev

@@ -26,10 +26,12 @@ import {
 	NameCreateContestPayDto,
 	TaglineCreateContestPayDto,
 } from '../../src/common/dto/payment';
+import { FileService } from '../../src/modules/file/file.service';
 
 describe('Payment controller', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
+	let fileService: FileService;
 
 	beforeAll(async (): Promise<void> => {
 		const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -37,6 +39,7 @@ describe('Payment controller', (): void => {
 		}).compile();
 		app = moduleFixture.createNestApplication();
 		prisma = app.get<PrismaService>(PrismaService);
+		fileService = app.get<FileService>(FileService);
 		useContainer(app.select(AppModule), { fallbackOnErrors: true });
 		app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 		app.use(cookieParser());
@@ -80,6 +83,7 @@ describe('Payment controller', (): void => {
 	});
 
 	afterAll(async (): Promise<void> => {
+		fileService.removeAllFiles();
 		await prisma.$disconnect();
 		await app.close();
 	});

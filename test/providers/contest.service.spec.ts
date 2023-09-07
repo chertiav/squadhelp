@@ -56,10 +56,12 @@ import {
 	userMockDataSecondCustomer,
 } from '../mockData';
 import { ICreatContest } from '../../src/common/interfaces/contest';
+import { FileService } from '../../src/modules/file/file.service';
 
 describe('Contest service', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
+	let fileService: FileService;
 	let contestService: ContestService;
 	let dataMockOffers: Offer[];
 	let dataMockContests: { contests: ICreatContest[] };
@@ -76,6 +78,7 @@ describe('Contest service', (): void => {
 		app = moduleFixture.createNestApplication();
 		prisma = app.get<PrismaService>(PrismaService);
 		contestService = app.get<ContestService>(ContestService);
+		fileService = app.get<FileService>(FileService);
 		await app.init();
 	});
 
@@ -221,6 +224,7 @@ describe('Contest service', (): void => {
 	});
 
 	afterAll(async (): Promise<void> => {
+		fileService.removeAllFiles();
 		await prisma.$disconnect();
 		await app.close();
 	});

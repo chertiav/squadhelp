@@ -13,6 +13,7 @@ import {
 	isUUID,
 	useContainer,
 } from 'class-validator';
+import { join } from 'path';
 import * as bcrypt from 'bcrypt';
 import * as cookieParser from 'cookie-parser';
 import * as request from 'supertest';
@@ -36,14 +37,15 @@ import {
 import { AppModule } from '../../src/modules/app/app.module';
 import { ICreatContest } from '../../src/common/interfaces/contest';
 import { AppMessages } from '../../src/common/messages';
-import { join } from 'path';
 import { seedUserDataModerator } from '../../prisma/seeders/data';
 import { OFFER_STATUS_COMMAND } from '../../src/common/enum';
 import { OfferDto, OfferForModeratorDto } from '../../src/common/dto/offer';
+import { FileService } from '../../src/modules/file/file.service';
 
 describe('Offer controller', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
+	let fileService: FileService;
 	let userIdFirstCustomer: { id: number };
 	let userIdSecondCustomer: { id: number };
 	let userIdFirstCreator: { id: number };
@@ -55,6 +57,7 @@ describe('Offer controller', (): void => {
 		}).compile();
 		app = moduleFixture.createNestApplication();
 		prisma = app.get<PrismaService>(PrismaService);
+		fileService = app.get<FileService>(FileService);
 		useContainer(app.select(AppModule), { fallbackOnErrors: true });
 		app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 		app.use(cookieParser());
@@ -151,6 +154,7 @@ describe('Offer controller', (): void => {
 	});
 
 	afterAll(async (): Promise<void> => {
+		fileService.removeAllFiles();
 		await prisma.$disconnect();
 		await app.close();
 	});

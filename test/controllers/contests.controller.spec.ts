@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { isArray, isObject, isUUID, useContainer } from 'class-validator';
+import { join } from 'path';
 import * as bcrypt from 'bcrypt';
 import * as cookieParser from 'cookie-parser';
 import * as request from 'supertest';
@@ -49,11 +50,12 @@ import { seedUserDataModerator } from '../../prisma/seeders/data';
 import { AppMessages } from '../../src/common/messages';
 import { ContestDto } from '../../src/common/dto/contest';
 import { ICreatContest } from '../../src/common/interfaces/contest';
-import { join } from 'path';
+import { FileService } from '../../src/modules/file/file.service';
 
 describe('Contest controller', (): void => {
 	let app: INestApplication;
 	let prisma: PrismaService;
+	let fileService: FileService;
 	let dataMockOffers: Offer[];
 	let dataMockContests: { contests: ICreatContest[] };
 	let userIdFirstCustomer: { id: number };
@@ -68,6 +70,7 @@ describe('Contest controller', (): void => {
 		}).compile();
 		app = moduleFixture.createNestApplication();
 		prisma = app.get<PrismaService>(PrismaService);
+		fileService = app.get<FileService>(FileService);
 		useContainer(app.select(AppModule), { fallbackOnErrors: true });
 		app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 		app.use(cookieParser());
@@ -217,6 +220,7 @@ describe('Contest controller', (): void => {
 	});
 
 	afterAll(async (): Promise<void> => {
+		fileService.removeAllFiles();
 		await prisma.$disconnect();
 		await app.close();
 	});
