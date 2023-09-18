@@ -1,6 +1,14 @@
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import {
+	AbstractHttpAdapter,
+	HttpAdapterHost,
+	NestFactory,
+} from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
+import {
+	INestApplication,
+	ValidationPipe,
+	VersioningType,
+} from '@nestjs/common';
 import { SwaggerModule } from '@nestjs/swagger';
 import * as express from 'express';
 import * as cookieParser from 'cookie-parser';
@@ -10,11 +18,12 @@ import { createDocument } from './modules/swagger';
 import { AllExceptionsFilter } from './exception';
 
 async function bootstrap(): Promise<void> {
-	const app = await NestFactory.create(AppModule);
+	const app: INestApplication = await NestFactory.create(AppModule);
 	const configService = app.get(ConfigService);
 	const port: string = configService.get<string>('port');
 	const staticPath: string = configService.get<string>('staticPath');
-	const httpAdapter = app.get(HttpAdapterHost);
+	const httpAdapter: HttpAdapterHost<AbstractHttpAdapter<any, any, any>> =
+		app.get(HttpAdapterHost);
 
 	app.enableVersioning({ type: VersioningType.URI });
 	app.use('/public', express.static(staticPath));
@@ -25,6 +34,7 @@ async function bootstrap(): Promise<void> {
 		credentials: true,
 		origin: ['http://localhost:3000'],
 	});
+	app.enableShutdownHooks();
 	SwaggerModule.setup('api', app, createDocument(app), {
 		swaggerOptions: {
 			persistAuthorization: true,
