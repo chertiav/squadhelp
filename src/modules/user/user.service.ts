@@ -29,7 +29,11 @@ export class UserService {
 		where: { id?: number; email?: string };
 	}): Promise<User | null> {
 		try {
-			return this.prisma.user.findUnique({ ...filter });
+			return this.prisma.user.findUnique({
+				where: filter.where?.id
+					? { id: filter.where.id }
+					: { email: filter.where.email },
+			});
 		} catch (e) {
 			throw new InternalServerErrorException(
 				AppErrors.INTERNAL_SERVER_ERROR_TRY_AGAIN_LATER,
