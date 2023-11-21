@@ -82,7 +82,7 @@ describe('User Controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch('/v1/user/update')
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.send(userUpdateMockData);
 
 		expect(response.body.user.firstName).toBe(userUpdateMockData.firstName);
@@ -107,7 +107,7 @@ describe('User Controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get('/v1/user/info')
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(response.body.firstName).toBe(userMockDataFirstCustomer.firstName);
 		expect(response.body.lastName).toBe(userMockDataFirstCustomer.lastName);
@@ -128,7 +128,7 @@ describe('User Controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get('/v1/user/balance')
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(response.body.balance).toBe('0');
 		expect(response.status).toBe(HttpStatus.OK);

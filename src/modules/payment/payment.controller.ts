@@ -13,7 +13,7 @@ import {
 	ApiBadRequestResponse,
 	ApiBody,
 	ApiConsumes,
-	ApiCookieAuth,
+	ApiBearerAuth,
 	ApiCreatedResponse,
 	ApiExtraModels,
 	ApiForbiddenResponse,
@@ -80,7 +80,7 @@ export class PaymentController {
 		type: PayDto,
 	})
 	@ApiCreatedResponse({ type: PayResDto })
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@UseInterceptors(
@@ -118,7 +118,7 @@ export class PaymentController {
 	@ApiBody({ type: CashOutDto })
 	@ApiOkResponse({ type: CashOutResDto })
 	@HttpCode(HttpStatus.OK)
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')

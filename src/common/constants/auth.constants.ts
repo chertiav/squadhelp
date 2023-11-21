@@ -8,8 +8,9 @@ import { seedUserDataModerator } from '../../../prisma/seeders/data';
 
 export const AUTH_COOKIES_OPTIONS: IAuthCookiesOptions = {
 	httpOnly: true,
-	secure: false,
-	maxAge: 24 * 60 * 60 * 1000,
+	sameSite: 'none',
+	secure: true,
+	maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 export const API_BODY_EXAMPLES_REGISTER: IApiBodyExamplesRegister = {

@@ -8,7 +8,8 @@ export function createDocument(app: INestApplication): OpenAPIObject {
 		.setTitle(ConfigSwagger.title)
 		.setDescription(ConfigSwagger.description)
 		.setVersion(ConfigSwagger.version)
-		.addCookieAuth('token', { type: 'apiKey' });
+		.addBearerAuth()
+		.addCookieAuth('jwtRt', { type: 'apiKey' });
 
 	const options: Omit<OpenAPIObject, 'paths'> = builder.build();
 

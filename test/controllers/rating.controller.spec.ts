@@ -200,7 +200,7 @@ describe('Rating controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/rating/change`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.send(dataRating);
 
 		const dataCreator: User = await prisma.user.findUnique({
@@ -277,7 +277,7 @@ describe('Rating controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/rating/change`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.send(dataUpdateRatingFirstCustomer);
 
 		const dataCreator: User = await prisma.user.findUnique({

@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
-	ApiCookieAuth,
+	ApiBearerAuth,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
 	ApiOperation,
@@ -52,7 +52,7 @@ export class FileController {
 			format: 'binary',
 		},
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')

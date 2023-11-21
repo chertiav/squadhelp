@@ -98,7 +98,7 @@ describe('Payment controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post(`/v1/payment/pay`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('number', paymentPayMockData.number)
 			.field('expiry', paymentPayMockData.expiry)
 			.field('cvc', paymentPayMockData.cvc)
@@ -157,7 +157,7 @@ describe('Payment controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post(`/v1/payment/pay`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('number', paymentPayMockData.number)
 			.field('expiry', paymentPayMockData.expiry)
 			.field('cvc', paymentPayMockData.cvc)
@@ -193,7 +193,7 @@ describe('Payment controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post(`/v1/payment/cashout`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.send(paymentCashoutMockData);
 
 		expect(isObject(response.body)).toBe(true);

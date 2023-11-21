@@ -51,7 +51,7 @@ export class UserService {
 					where: { email: dto.email },
 				});
 				if (existsUser) throw new BadRequestException(AppErrors.USER_EXISTS);
-				const hashPassword: string = await this.getHashPassword(dto.password);
+				const hashPassword: string = await this.getHashData(dto.password);
 
 				return this.prisma.user.create({
 					data: {
@@ -174,7 +174,7 @@ export class UserService {
 		});
 	}
 
-	private async getHashPassword(
+	public async getHashData(
 		password: string,
 		salt?: string | number,
 	): Promise<string> {

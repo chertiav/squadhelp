@@ -11,9 +11,9 @@ import {
 	Version,
 } from '@nestjs/common';
 import {
+	ApiBearerAuth,
 	ApiBody,
 	ApiConsumes,
-	ApiCookieAuth,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
@@ -65,7 +65,7 @@ export class UserController {
 		description: 'User data updated successfully',
 		type: UpdateUserResDto,
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@UseGuards(JWTAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	@UseInterceptors(
@@ -98,7 +98,7 @@ export class UserController {
 		description: 'User info data ',
 		type: InfoUserDto,
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@UseGuards(JWTAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	@Version('1')
@@ -125,7 +125,7 @@ export class UserController {
 		type: BalanceUserDto,
 	})
 	@Roles(Role.creator)
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
 	@Get('balance')

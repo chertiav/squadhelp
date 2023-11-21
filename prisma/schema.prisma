@@ -14,21 +14,22 @@ enum Role {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  firstName   String    @map("first_name")
-  lastName    String    @map("last_name")
-  displayName String    @map("display_name")
-  password    String
-  email       String    @unique
-  avatar      String    @default("anon.png")
-  role        Role
-  balance     Decimal   @default(0)
-  rating      Float     @default(0)
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  contests    Contest[]
-  offers      Offer[]
-  ratings     Rating[]
+  id           Int       @id @default(autoincrement())
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  displayName  String    @map("display_name")
+  password     String
+  email        String    @unique
+  avatar       String    @default("anon.png")
+  role         Role
+  refreshToken String    @default("")
+  balance      Decimal   @default(0)
+  rating       Float     @default(0)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  contests     Contest[]
+  offers       Offer[]
+  ratings      Rating[]
 
   @@map("users")
 }

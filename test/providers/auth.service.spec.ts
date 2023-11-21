@@ -1,5 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { isNumber } from 'class-validator';
 import * as bcrypt from 'bcrypt';
 
@@ -8,10 +10,9 @@ import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AuthService } from '../../src/modules/auth/auth.service';
 import { AppModule } from '../../src/modules/app/app.module';
 import { userMockDataFirstCustomer } from '../mockData';
-import { JwtService } from '@nestjs/jwt';
 import { DEFAULT_AVATAR_NAME } from '../../src/common/constants/common.constants';
-import { CreateUserDto, PublicUserDto } from '../../src/common/dto/user';
-import { IJwtPayload } from '../../src/common/interfaces/auth';
+import { CreateUserDto } from '../../src/common/dto/user';
+import { IAuthUser, IJwtPayload } from '../../src/common/interfaces/auth';
 import { CommonConstants } from '../../src/common/constants';
 
 describe('Auth Service', (): void => {
@@ -19,6 +20,7 @@ describe('Auth Service', (): void => {
 	let prisma: PrismaService;
 	let authService: AuthService;
 	let jwtService: JwtService;
+	let configService: ConfigService;
 
 	beforeAll(async (): Promise<void> => {
 		const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -28,6 +30,7 @@ describe('Auth Service', (): void => {
 		prisma = app.get<PrismaService>(PrismaService);
 		authService = app.get<AuthService>(AuthService);
 		jwtService = app.get<JwtService>(JwtService);
+		configService = app.get<ConfigService>(ConfigService);
 		await app.init();
 	});
 
@@ -84,36 +87,87 @@ describe('Auth Service', (): void => {
 			where: { email: userMockDataFirstCustomer.email },
 		});
 
-		const { user, token }: { user: PublicUserDto; token: string } =
-			await authService.register(userMockDataFirstCustomer as CreateUserDto);
-		const checkToken: IJwtPayload = jwtService.verify(token);
+		const { tokens }: IAuthUser = await authService.register(
+			userMockDataFirstCustomer as CreateUserDto,
+		);
 
-		expect(isNumber(user.id)).toBe(true);
-		expect(user.displayName).toBe(userMockDataFirstCustomer.displayName);
-		expect(user.role).toBe(userMockDataFirstCustomer.role);
-		expect(user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
-		expect(checkToken.user.id).toBe(user.id);
-		expect(isNumber(checkToken.iat)).toBe(true);
-		expect(isNumber(checkToken.exp)).toBe(true);
+		const checkAtToken: IJwtPayload = jwtService.verify(tokens.accessToken);
+		const checkRtToken: IJwtPayload = jwtService.verify(tokens.refreshToken, {
+			secret: configService.get<string>('secretRt'),
+		});
+
+		expect(checkAtToken.user).toEqual(checkRtToken.user);
+		expect(isNumber(checkAtToken.user.id)).toBe(true);
+		expect(checkAtToken.user.displayName).toBe(
+			userMockDataFirstCustomer.displayName,
+		);
+		expect(checkAtToken.user.role).toBe(userMockDataFirstCustomer.role);
+		expect(checkAtToken.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
+		expect(isNumber(checkAtToken.iat)).toBe(true);
+		expect(isNumber(checkAtToken.exp)).toBe(true);
 	});
 
 	it('should login user', async (): Promise<void> => {
-		const { user, token }: { user: PublicUserDto; token: string } =
-			await authService.login({
-				email: userMockDataFirstCustomer.email,
-				password: userMockDataFirstCustomer.password,
-			});
+		const { tokens }: IAuthUser = await authService.login({
+			email: userMockDataFirstCustomer.email,
+			password: userMockDataFirstCustomer.password,
+		});
 
-		const checkToken: IJwtPayload = jwtService.verify(token);
+		const checkAtToken: IJwtPayload = jwtService.verify(tokens.accessToken);
+		const checkRtToken: IJwtPayload = jwtService.verify(tokens.refreshToken, {
+			secret: configService.get<string>('secretRt'),
+		});
 
-		expect(isNumber(user.id)).toBe(true);
-		expect(user.displayName).toBe(userMockDataFirstCustomer.displayName);
-		expect(user.role).toBe(userMockDataFirstCustomer.role);
-		expect(user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
-		expect(checkToken.user.id).toBe(user.id);
-		expect(checkToken.user.displayName).toBe(user.displayName);
-		expect(checkToken.user.role).toBe(user.role);
-		expect(isNumber(checkToken.iat)).toBe(true);
-		expect(isNumber(checkToken.exp)).toBe(true);
+		expect(checkAtToken.user).toEqual(checkRtToken.user);
+		expect(isNumber(checkAtToken.user.id)).toBe(true);
+		expect(checkAtToken.user.displayName).toBe(
+			userMockDataFirstCustomer.displayName,
+		);
+		expect(checkAtToken.user.role).toBe(userMockDataFirstCustomer.role);
+		expect(checkAtToken.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
+		expect(isNumber(checkAtToken.iat)).toBe(true);
+		expect(isNumber(checkAtToken.exp)).toBe(true);
+	});
+
+	it('should logout user', async (): Promise<void> => {
+		const { tokens }: IAuthUser = await authService.login({
+			email: userMockDataFirstCustomer.email,
+			password: userMockDataFirstCustomer.password,
+		});
+
+		const userInfo: IJwtPayload = jwtService.verify(tokens.accessToken);
+		const userLogout: boolean = await authService.logout(userInfo.user.id);
+		const userDataDb: User = await prisma.user.findUnique({
+			where: { id: userInfo.user.id },
+		});
+
+		expect(userLogout).toBe(true);
+		expect(userDataDb).toHaveProperty('refreshToken', '');
+	});
+
+	it('should refresh tokens', async (): Promise<void> => {
+		const oldTokens: IAuthUser = await authService.login({
+			email: userMockDataFirstCustomer.email,
+			password: userMockDataFirstCustomer.password,
+		});
+
+		const userInfo: IJwtPayload = jwtService.verify(
+			oldTokens.tokens.accessToken,
+		);
+		const { tokens }: IAuthUser = await authService.refreshTokens(
+			userInfo.user.id,
+			oldTokens.tokens.refreshToken,
+		);
+
+		const checkAtToken: IJwtPayload = jwtService.verify(tokens.accessToken);
+		const checkRtToken: IJwtPayload = jwtService.verify(tokens.refreshToken, {
+			secret: configService.get<string>('secretRt'),
+		});
+
+		expect(checkAtToken.user).toEqual(checkRtToken.user);
+		expect(tokens).toHaveProperty('accessToken');
+		expect(tokens).toHaveProperty('refreshToken');
+		expect(tokens.accessToken).not.toEqual([null, undefined]);
+		expect(tokens.refreshToken).not.toEqual([null, undefined]);
 	});
 });

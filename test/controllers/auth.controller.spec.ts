@@ -5,7 +5,7 @@ import {
 	VersioningType,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { isNumber, useContainer } from 'class-validator';
+import { useContainer } from 'class-validator';
 import * as request from 'supertest';
 import * as cookieParser from 'cookie-parser';
 import * as bcrypt from 'bcrypt';
@@ -14,7 +14,6 @@ import { AppMessages } from '../../src/common/messages';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import { AppModule } from '../../src/modules/app/app.module';
 import { userMockDataFirstCustomer } from '../mockData';
-import { CommonConstants } from '../../src/common/constants';
 
 describe('Auth Controller', (): void => {
 	let app: INestApplication;
@@ -54,18 +53,13 @@ describe('Auth Controller', (): void => {
 			.post('/v1/auth/register')
 			.send(userMockDataFirstCustomer);
 
-		expect(isNumber(response.body.user.id)).toBe(true);
-		expect(response.body.user.displayName).toBe(
-			userMockDataFirstCustomer.displayName,
-		);
-		expect(response.body.user.role).toBe(userMockDataFirstCustomer.role);
-		expect(response.body.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
+		expect(response.body.accessToken).not.toEqual([null, undefined]);
 		expect(response.body.message).toBe(AppMessages.MSG_REGISTER);
 		expect(response.status).toBe(HttpStatus.CREATED);
 	});
 
 	it('should login user', async (): Promise<void> => {
-		const testUser = await prisma.user.create({
+		await prisma.user.create({
 			data: { ...userMockDataFirstCustomer, password: hashPassword },
 		});
 
@@ -76,17 +70,12 @@ describe('Auth Controller', (): void => {
 				password: userMockDataFirstCustomer.password,
 			});
 
-		expect(response.body.user.id).toBe(testUser.id);
-		expect(response.body.user.displayName).toBe(
-			userMockDataFirstCustomer.displayName,
-		);
-		expect(response.body.user.role).toBe(userMockDataFirstCustomer.role);
-		expect(response.body.user.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
+		expect(response.body.accessToken).not.toEqual([null, undefined]);
 		expect(response.body.message).toBe(AppMessages.MSG_LOGGED_IN);
 		expect(response.status).toBe(HttpStatus.OK);
 	});
 
-	it('should login check', async (): Promise<void> => {
+	it('should refresh tokens', async (): Promise<void> => {
 		await prisma.user.create({
 			data: { ...userMockDataFirstCustomer, password: hashPassword },
 		});
@@ -98,16 +87,12 @@ describe('Auth Controller', (): void => {
 				password: userMockDataFirstCustomer.password,
 			});
 
-		const loginCheck: request.Response = await request(app.getHttpServer())
-			.get('/v1/auth/login-check')
+		const response: request.Response = await request(app.getHttpServer())
+			.get('/v1/auth/refresh')
 			.set('Cookie', login.headers['set-cookie']);
 
-		expect(isNumber(loginCheck.body.id)).toBe(true);
-		expect(loginCheck.body.displayName).toBe(
-			userMockDataFirstCustomer.displayName,
-		);
-		expect(loginCheck.body.avatar).toBe(CommonConstants.DEFAULT_AVATAR_NAME);
-		expect(loginCheck.body.role).toBe(userMockDataFirstCustomer.role);
+		expect(response.body.accessToken).not.toEqual([null, undefined]);
+		expect(response.status).toBe(HttpStatus.OK);
 	});
 
 	it('should logout', async (): Promise<void> => {

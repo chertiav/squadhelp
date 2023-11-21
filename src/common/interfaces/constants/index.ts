@@ -8,6 +8,7 @@ import {
 //auth
 export interface IAuthCookiesOptions {
 	httpOnly: boolean;
+	sameSite: boolean | 'lax' | 'strict' | 'none';
 	secure: boolean;
 	maxAge: number;
 }
