@@ -8,7 +8,7 @@ import {
 import { HttpAdapterHost } from '@nestjs/core';
 
 import { AppErrors } from '../common/errors';
-import { IErrorBody, ILoggerBody } from '../common/interfaces/exception';
+import { IErrorBody } from '../common/interfaces/exception';
 import { loggingError } from '../utils';
 
 @Catch()
@@ -46,12 +46,17 @@ export class AllExceptionsFilter implements ExceptionFilter {
 				? exception.name
 				: AppErrors.UNINTENDED_INTERNAL_SERVER_ERROR;
 
-		const responseLoggedBody: ILoggerBody = {
-			status: httpStatus,
-			timestamp: new Date().toISOString(),
-			message: httpMessage(),
-			stackTrace: httpStack,
-		};
+		const stackTrace: string = httpStack
+			.toString()
+			.split(`\n`)
+			.filter((element, index, arr) => index !== 0)
+			.map((e) => '- ' + e.trim() + `\n`)
+			.join('')
+			.replace(',', '');
+
+		const responseLoggedBody = `${ctx.getRequest().method}\t${
+			ctx.getRequest().url
+		}\t${httpHeader}\t${httpStatus}\t${httpMessage()}\tstackTrace:\n${stackTrace}`;
 
 		const responseBody: IErrorBody = {
 			status: httpStatus,
