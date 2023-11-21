@@ -19,28 +19,26 @@ import {
 	ApiOkResponse,
 	ApiOperation,
 	ApiTags,
-	ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import { Response } from 'express';
 
 import { AuthService } from './auth.service';
-import { JWTAuthGuard, LocalAuthGuard } from '../../guards';
+import { JWTRtAuthGuard, LocalAuthGuard } from '../../guards';
 import { AppMessages } from '../../common/messages';
 import { AuthConstants } from '../../common/constants';
 import {
 	BadRequestExceptionResDto,
 	ForbiddenExceptionResDto,
-	UnauthorizedExceptionResDto,
 } from '../../common/dto/exception';
 import {
 	LoginAuthDto,
 	LoginAuthResDto,
-	LoginCheckAuthResDto,
 	LogoutAuthResDto,
 	RegisterAuthDto,
 	RegisterAuthResDto,
 } from '../../common/dto/auth';
 import { IAuthUser, ILocalGuardRequest } from '../../common/interfaces/auth';
+import { UserId } from '../../decorators';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -68,11 +66,14 @@ export class AuthController {
 		@Res({ passthrough: true }) res: Response,
 		@Body() dto: RegisterAuthDto,
 	): Promise<RegisterAuthResDto> {
-		const { user, token }: IAuthUser = await this.authService.register(dto);
-		res.cookie('token', token, {
+		const { tokens }: IAuthUser = await this.authService.register(dto);
+		res.cookie('jwtRt', tokens.refreshToken, {
 			...AuthConstants.AUTH_COOKIES_OPTIONS,
 		});
-		return { user, message: AppMessages.MSG_REGISTER };
+		return {
+			accessToken: tokens.accessToken,
+			message: AppMessages.MSG_REGISTER,
+		};
 	}
 
 	@ApiOperation({ description: 'User login in' })
@@ -97,40 +98,62 @@ export class AuthController {
 		@Res({ passthrough: true }) res: Response,
 		@Req() req: ILocalGuardRequest,
 	): Promise<LoginAuthResDto> {
-		const { user, token }: IAuthUser = await this.authService.login(req.user);
-		res.cookie('token', token, {
+		const { tokens }: IAuthUser = await this.authService.login(req.user);
+		res.cookie('jwtRt', tokens.refreshToken, {
 			...AuthConstants.AUTH_COOKIES_OPTIONS,
 		});
-		return { user, message: AppMessages.MSG_LOGGED_IN };
-	}
-
-	@UseGuards(JWTAuthGuard)
-	@ApiCookieAuth()
-	@ApiUnauthorizedResponse({
-		description: 'Unauthorized message',
-		type: UnauthorizedExceptionResDto,
-	})
-	@ApiOkResponse({
-		description: 'Successfully check token data and information message',
-		type: LoginCheckAuthResDto,
-	})
-	@Version('1')
-	@Get('/login-check')
-	loginCheck(@Req() request: any): Promise<LoginCheckAuthResDto> {
-		return request.user;
+		return {
+			accessToken: tokens.accessToken,
+			message: AppMessages.MSG_LOGGED_IN,
+		};
 	}
 
 	@ApiOkResponse({
 		description: 'Logout message',
 		type: LogoutAuthResDto,
 	})
+	@UseGuards(JWTRtAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	@Version('1')
 	@Get('logout')
 	async logout(
+		@UserId() id: number,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<LogoutAuthResDto> {
-		res.clearCookie('token');
+		await this.authService.logout(id);
+		res.clearCookie('jwtRt', {
+			httpOnly: true,
+			sameSite: 'none',
+			secure: true,
+		});
 		return { message: AppMessages.MSG_LOGGED_OUT };
+	}
+
+	@UseGuards(JWTRtAuthGuard)
+	@ApiCookieAuth()
+	@ApiForbiddenResponse({
+		description: 'Forbidden exception message',
+		type: ForbiddenExceptionResDto,
+	})
+	@ApiOkResponse()
+	@Version('1')
+	@Get('refresh')
+	@HttpCode(HttpStatus.OK)
+	async refreshTokens(
+		@Req() request: any,
+		@Res({ passthrough: true }) res: Response,
+		@UserId() userId: number,
+	): Promise<{ accessToken: string }> {
+		const refreshToken = request?.cookies?.jwtRt || null;
+		const { tokens }: IAuthUser = await this.authService.refreshTokens(
+			userId,
+			refreshToken,
+		);
+		res.cookie('jwtRt', tokens.refreshToken, {
+			...AuthConstants.AUTH_COOKIES_OPTIONS,
+		});
+		return {
+			accessToken: tokens.accessToken,
+		};
 	}
 }

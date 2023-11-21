@@ -235,7 +235,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest/start/${ContestType.name}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(isArray(response.body.industry)).toBe(true);
 		expect(isArray(response.body.typeOfName)).toBe(true);
@@ -257,7 +257,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest/start/${ContestType.logo}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(isArray(response.body.industry)).toBe(true);
 		expect(isArray(response.body.brandStyle)).toBe(true);
@@ -279,7 +279,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest/start/${ContestType.tagline}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(isArray(response.body.industry)).toBe(true);
 		expect(isArray(response.body.typeOfTagline)).toBe(true);
@@ -299,7 +299,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query(queryGetContestsCustomerAll);
 
 		const dataContests: Contest[] = dataIdContests.filter(
@@ -380,7 +380,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query(queryGetContestsCustomerActive);
 
 		const getItemResponseBodyToCheck = (itemsArray: ContestDto[]): ContestDto =>
@@ -452,7 +452,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query(queryGetContestsCreatorAll);
 
 		const getItemResponseBodyToCheck = (itemsArray: ContestDto[]): ContestDto =>
@@ -526,7 +526,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query(queryGetContestsCreatorActive);
 
 		const getItemResponseBodyToCheck = (itemsArray: ContestDto[]): ContestDto =>
@@ -607,7 +607,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query(queryGetContestsModeratorAll);
 
 		const getItemResponseBodyToCheck = (itemsArray: ContestDto[]): ContestDto =>
@@ -672,7 +672,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest/${dataContest.id}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(isObject(response.body)).toBe(true);
 		expect(response.body).toHaveProperty('id', dataContest.id);
@@ -738,7 +738,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest/${dataContest.id}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(isObject(response.body)).toBe(true);
 		expect(response.body).toHaveProperty('id', dataContest.id);
@@ -831,7 +831,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/contest/${dataContest.id}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(isObject(response.body)).toBe(true);
 		expect(response.body).toHaveProperty('id', dataContest.id);
@@ -898,7 +898,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/contest/update/${dataContest.id}`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('title', updateContestTypeName.title)
 			.field('typeOfName', updateContestTypeName.typeOfName)
 			.field('focusOfWork', updateContestTypeName.focusOfWork)
@@ -998,7 +998,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/contest/update/${dataContest.id}`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('title', updateContestTypeTagLine.title)
 			.field('focusOfWork', updateContestTypeTagLine.focusOfWork)
 			.field('industry', updateContestTypeTagLine.industry)
@@ -1098,7 +1098,7 @@ describe('Contest controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/contest/update/${dataContest.id}`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('title', updateContestTypeLogo.title)
 			.field('focusOfWork', updateContestTypeLogo.focusOfWork)
 			.field('industry', updateContestTypeLogo.industry)

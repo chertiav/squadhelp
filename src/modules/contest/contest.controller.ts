@@ -16,7 +16,7 @@ import {
 	ApiBadRequestResponse,
 	ApiBody,
 	ApiConsumes,
-	ApiCookieAuth,
+	ApiBearerAuth,
 	ApiExtraModels,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
@@ -121,7 +121,7 @@ export class ContestController {
 		description: 'The name of the type of competition to receive data',
 		enum: ContestType,
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Roles(Role.customer)
 	@Version('1')
@@ -197,7 +197,7 @@ export class ContestController {
 			moderator: ContestConstants.API_QUERY_EXAMPLES_GET_CONTESTS_MODERATOR,
 		},
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.customer, Role.creator, Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
@@ -269,7 +269,7 @@ export class ContestController {
 	})
 	@Roles(Role.creator, Role.moderator, Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Version('1')
 	@Get(':contestId')
 	async contestById(
@@ -333,7 +333,7 @@ export class ContestController {
 	)
 	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Version('1')
 	@Patch('update/:contestId')
 	async contestUpdate(

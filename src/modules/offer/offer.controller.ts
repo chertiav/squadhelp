@@ -18,7 +18,7 @@ import {
 	ApiBadRequestResponse,
 	ApiBody,
 	ApiConsumes,
-	ApiCookieAuth,
+	ApiBearerAuth,
 	ApiExtraModels,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
@@ -93,7 +93,7 @@ export class OfferController {
 		}),
 		OneFileInterceptor,
 	)
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
@@ -133,7 +133,7 @@ export class OfferController {
 	@ApiOkResponse({
 		type: DeleteOfferResDto,
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.creator, Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
@@ -178,7 +178,7 @@ export class OfferController {
 	@ApiOkResponse({
 		type: OfferUpdateDto,
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.customer, Role.moderator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
@@ -228,7 +228,7 @@ export class OfferController {
 			},
 		},
 	})
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.customer, Role.moderator, Role.creator)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')

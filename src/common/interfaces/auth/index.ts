@@ -2,11 +2,10 @@ import { Request } from 'express';
 import { ExamplesObject } from '@nestjs/swagger/dist/interfaces/open-api-spec.interface';
 
 import { Role, User } from '@prisma/client';
-import { PublicUserDto } from '../../dto/user';
+import { Tokens } from '../token';
 
 export interface IAuthUser {
-	user: PublicUserDto;
-	token: string;
+	tokens: Tokens;
 }
 
 export interface ILocalGuardRequest extends Request {

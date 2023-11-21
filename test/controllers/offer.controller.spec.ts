@@ -178,7 +178,7 @@ describe('Offer controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post(`/v1/offer/create`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('contestId', contestForOffer[0].id)
 			.field('text', offerText);
 
@@ -229,7 +229,7 @@ describe('Offer controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post(`/v1/offer/create`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('contestId', contestForOffer[0].id)
 			.field('text', offerText);
 
@@ -281,7 +281,7 @@ describe('Offer controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.post(`/v1/offer/create`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.field('contestId', contestForOffer[0].id)
 			.attach('file', testFile);
 
@@ -334,7 +334,7 @@ describe('Offer controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.delete(`/v1/offer/delete/${offerId.id}`)
-			.set('Cookie', login.headers['set-cookie']);
+			.set('Authorization', 'Bearer ' + login.body.accessToken);
 
 		expect(response.body).toHaveProperty(
 			'message',
@@ -382,7 +382,7 @@ describe('Offer controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/offer/set-status`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.send({
 				command: OFFER_STATUS_COMMAND.active,
 				offerId: offerData.id,
@@ -428,7 +428,7 @@ describe('Offer controller', (): void => {
 
 		const response: request.Response = await request(app.getHttpServer())
 			.patch(`/v1/offer/set-status`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.send({
 				contestId: contestForOffer[0].id,
 				command: OFFER_STATUS_COMMAND.reject,
@@ -507,7 +507,7 @@ describe('Offer controller', (): void => {
 			});
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/offer`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query({
 				limit: 8,
 				page: 0,
@@ -650,7 +650,7 @@ describe('Offer controller', (): void => {
 			});
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/offer`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query({
 				limit: 8,
 				page: 0,
@@ -758,7 +758,7 @@ describe('Offer controller', (): void => {
 			});
 		const response: request.Response = await request(app.getHttpServer())
 			.get(`/v1/offer`)
-			.set('Cookie', login.headers['set-cookie'])
+			.set('Authorization', 'Bearer ' + login.body.accessToken)
 			.query({
 				limit: 8,
 				page: 0,

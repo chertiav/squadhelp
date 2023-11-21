@@ -6,6 +6,8 @@ export default (): IConfiguration => ({
 	port: env.PORT,
 	secret: env.SECRET_JWT,
 	expireJwt: env.JWT_EXPIRE,
+	secretRt: env.RT_SECRET,
+	expireRtJwt: env.JWT_RT_EXPIRE,
 	staticPath: join(__dirname, '../../../../../', env.STATIC_PATH),
 	smtpHost: env.SMTP_HOST,
 	smtpPort: env.SMTP_PORT,

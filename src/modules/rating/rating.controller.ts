@@ -2,7 +2,7 @@ import { Body, Controller, Patch, UseGuards, Version } from '@nestjs/common';
 import {
 	ApiBadRequestResponse,
 	ApiBody,
-	ApiCookieAuth,
+	ApiBearerAuth,
 	ApiForbiddenResponse,
 	ApiInternalServerErrorResponse,
 	ApiOkResponse,
@@ -56,7 +56,7 @@ export class RatingController {
 		examples: RatingConstants.API_BODY_EXAMPLES_CHANGE_RATING,
 	})
 	@ApiOkResponse({ type: ChangeRatingResDto })
-	@ApiCookieAuth()
+	@ApiBearerAuth()
 	@Roles(Role.customer)
 	@UseGuards(JWTAuthGuard, RolesGuard)
 	@Version('1')
